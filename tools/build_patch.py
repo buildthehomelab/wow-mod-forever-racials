@@ -17,8 +17,12 @@ What it changes:
   Artist's immunity, Eureka!, Expansive Mind's hidden power bonus, Shatter Curse, Touch of the
   Grave (the passive and the drain), Plainsrunning (the passive and the speed buff), Cultivation
   and Rapid Regeneration. The server gets the same rows from spell_dbc.
-- The existing racials the server changes: the Human, Dwarf and Orc weapon specializations give
-  crit instead of expertise, The Human Spirit gives 5% Spirit, Diplomacy is hidden (the server
+- The 2 active + 2 passive layout: each race's extra racials (resistances, Command, Gun, Bow and
+  Throwing Specialization, and so on; see FOLDED) are hidden from the spellbook and listed in the
+  tooltip of the passive they're folded into. They keep working; the server doesn't change them.
+- The existing racials the server changes: the Human, Dwarf and Orc weapon specializations
+  (and Dwarf Gun Specialization) give 2% crit instead of expertise, Perception has a 2 min
+  cooldown, The Human Spirit gives 5% Spirit, Diplomacy is hidden (the server
   makes it give nothing), Stoneform also cuts physical damage, Quickness adds run speed, Escape
   Artist adds its immunity, Expansive Mind adds max mana, Blood Fury gives attack power and spell
   power, Hardiness is 20%, Cannibalize restores mana too and Endurance adds hit. The client uses these for tooltips; the server decides what they do.
@@ -44,7 +48,7 @@ HUMAN_SPIRIT_PERCENT = 5
 STONEFORM_PHYSICAL_REDUCTION = 10
 QUICKNESS_SPEED_PERCENT = 2
 EXPANSIVE_MIND_POWER_PERCENT = 5
-BLOOD_FURY_PERCENT = 10
+BLOOD_FURY_PERCENT = 15
 HARDINESS_PERCENT = 20
 CANNIBALIZE_MANA_PERCENT = 7
 ENDURANCE_HIT_PERCENT = 1
@@ -54,6 +58,9 @@ TOUCH_POWER_PERCENT = 25
 TOUCH_MAX_HEALTH_PERCENT = 5
 PLAINSRUNNING_MAX_STACKS = 5
 CULTIVATION_MINUTES = 2
+PERCEPTION_COOLDOWN_MS = 120000
+EUREKA_DAMAGE_PERCENT = 30
+EUREKA_COST_PERCENT = 50
 
 # --- New spells: must match the SQL (printed by --sql) and src/ForeverRacials.cpp ---------------
 SPELL_BIG_GAME_HUNTER = 90100
@@ -88,6 +95,31 @@ SPELL_HARDINESS = 20573
 SPELL_CANNIBALIZE = 20577
 SPELL_CANNIBALIZE_HEAL = 20578
 SPELL_ENDURANCE = 20550
+SPELL_PERCEPTION = 20600
+SPELL_GUN_SPEC = 20595
+SPELL_WISP_SPIRIT = 20585
+SPELL_ENGINEERING_SPEC = 20593
+SPELL_REGENERATION = 20555
+SPELL_BEAST_SLAYING = 20557
+
+# The 2 active + 2 passive layout: each race's extra racials keep working on the server but are
+# hidden from the client's spellbook, and the passive they're folded into lists them in its
+# tooltip (see TEXTS).
+FOLDED = {
+    SPELL_HUMAN_MACE_SPEC: "Sword Specialization",
+    SPELL_GUN_SPEC: "Mace Specialization",
+    20596: "Big Game Hunter",               # Frost Resistance
+    20583: "Wisp Spirit",                   # Nature Resistance (Night Elf)
+    21009: "Wisp Spirit",                   # Elusiveness
+    20592: "Engineering Specialization",    # Arcane Resistance
+    20575: "Hardiness",                     # Command
+    20579: "Touch of the Grave",            # Shadow Resistance
+    20551: "Plainsrunning",                 # Nature Resistance (Tauren)
+    20552: "Cultivation",                   # Cultivation's +15 Herbalism
+    58943: "Regeneration",                  # Da Voodoo Shuffle
+    26290: "Beast Slaying",                 # Bow Specialization
+    20558: "Beast Slaying",                 # Throwing Specialization
+}
 
 # SpellDuration.dbc
 DURATION_3_SEC = 27
@@ -221,7 +253,8 @@ WEAPON_SPEC = ("Your chance to critically hit with melee and ranged attacks and 
                "by {pct}% while you have {weapons} equipped.")
 
 TEXTS = {
-    SPELL_BIG_GAME_HUNTER: ("Big Game Hunter", "Damage dealt versus Beasts increased by $s1%.", ""),
+    SPELL_BIG_GAME_HUNTER: ("Big Game Hunter",
+        "Damage dealt versus Beasts increased by $s1%. Frost spells are $20596s1% less likely to hit you.", ""),
     SPELL_ELUNES_LIGHT: ("Elune's Light",
         "Calls down Elune's light, increasing your chance to critically hit with melee and ranged "
         "attacks and spells by $s1% for $d.",
@@ -242,26 +275,43 @@ TEXTS = {
         f"{TOUCH_SPELL_CHANCE}% chance to drain the target, dealing Shadow damage equal to "
         f"{TOUCH_POWER_PERCENT}% of your attack power or spell power, whichever is higher, and "
         f"healing you for the same amount. The drain can't exceed {TOUCH_MAX_HEALTH_PERCENT}% of "
-        "your maximum health.",
+        "your maximum health. Shadow spells are $20579s1% less likely to hit you.",
         ""),
     SPELL_TOUCH_OF_THE_GRAVE_DRAIN: ("Touch of the Grave", "", ""),
     SPELL_PLAINSRUNNING: ("Plainsrunning",
         f"Each second you keep moving increases your movement speed by 1%, up to "
-        f"{PLAINSRUNNING_MAX_STACKS}%. Stopping resets it.",
+        f"{PLAINSRUNNING_MAX_STACKS}%. Stopping resets it. Nature spells are $20551s1% less likely "
+        "to hit you.",
         ""),
     SPELL_PLAINSRUNNING_SPEED: ("Plainsrunning", "",
         "Movement speed increased by $s1% for each second spent moving."),
     SPELL_CULTIVATION: ("Cultivation",
         f"Grows a herb out of the ground in front of you, matched to your level. Anyone can gather "
-        f"it without Herbalism. It withers after {CULTIVATION_MINUTES} min.",
+        f"it without Herbalism. It withers after {CULTIVATION_MINUTES} min.\n\nPassive: Herbalism "
+        "skill increased by $20552s1.",
         ""),
     SPELL_RAPID_REGENERATION: ("Rapid Regeneration",
         "Regenerates $s1% of your maximum health every $t1 sec for $d.",
         "Regenerating $s1% of maximum health every $t1 sec."),
 
-    SPELL_HUMAN_SWORD_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Sword"), None),
+    SPELL_HUMAN_SWORD_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Sword or Mace"), None),
     SPELL_HUMAN_MACE_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Mace"), None),
-    SPELL_DWARF_MACE_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Mace"), None),
+    SPELL_DWARF_MACE_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Mace or Gun"), None),
+    SPELL_GUN_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Gun"), None),
+    SPELL_WISP_SPIRIT: (None,
+        "Transform into a wisp upon death, increasing speed by $20584s1%. You are harder to detect "
+        "while Shadowmelded or stealthed, and Nature spells are $20583s1% less likely to hit you.", None),
+    SPELL_ENGINEERING_SPEC: (None,
+        "Engineering skill increased by $s1. Arcane spells are $20592s1% less likely to hit you.", None),
+    SPELL_HARDINESS: (None,
+        "Duration of Stun effects reduced by an additional $s1%. Damage dealt by your pets increased "
+        "by $20575s1%.", None),
+    SPELL_REGENERATION: (None,
+        "Health regeneration rate increased by $s1%.  $s2% of total Health regeneration may continue "
+        "during combat. The duration of movement impairing effects is reduced by $58943s1%.", None),
+    SPELL_BEAST_SLAYING: (None,
+        "Damage dealt versus Beasts increased by $s1%. Your chance to critically hit with Bows and "
+        "Throwing Weapons is increased by $26290s1%.", None),
     SPELL_ORC_AXE_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="an Axe or Fist Weapon"), None),
     SPELL_STONEFORM: (None,
         "Removes all poison, disease and bleed effects, increases your armor by $65116s1% and "
@@ -425,14 +475,14 @@ def new_spells(rows):
     set_aura(s, 1, AURA_MECHANIC_IMMUNITY, 1, misc=MECHANIC_SNARE)
     spells.append(s)
 
-    # Gnome active: next 3 spells or abilities cost 25% less and do 10% more, 20 sec, 2 min.
+    # Gnome active: next 3 spells or abilities cost 50% less and do 30% more, 20 sec, 2 min.
     s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_EUREKA, icon=ICON_ENGINEERING, visual=VISUAL_ARCANE_POWER)
     s[F_RECOVERY_TIME] = 120000
     s[F_DURATION_INDEX] = DURATION_20_SEC
     s[F_PROC_CHARGES] = 3
-    set_aura(s, 0, AURA_MOD_DAMAGE_PERCENT_DONE, 10, misc=SCHOOL_MASK_ALL)
-    set_aura(s, 1, AURA_MOD_HEALING_DONE_PERCENT, 10)
-    set_aura(s, 2, AURA_MOD_POWER_COST_SCHOOL_PCT, -25, misc=SCHOOL_MASK_ALL)
+    set_aura(s, 0, AURA_MOD_DAMAGE_PERCENT_DONE, EUREKA_DAMAGE_PERCENT, misc=SCHOOL_MASK_ALL)
+    set_aura(s, 1, AURA_MOD_HEALING_DONE_PERCENT, EUREKA_DAMAGE_PERCENT)
+    set_aura(s, 2, AURA_MOD_POWER_COST_SCHOOL_PCT, -EUREKA_COST_PERCENT, misc=SCHOOL_MASK_ALL)
     spells.append(s)
 
     # Gnome passive, hidden: the rage, energy and runic power half of Expansive Mind (the stock
@@ -495,12 +545,12 @@ def new_spells(rows):
     s[F_EFFECT_TARGET_A] = TARGET_UNIT_CASTER
     spells.append(s)
 
-    # Troll active: 10% of max health every 2 sec for 10 sec, 3 min cooldown. Unlike
+    # Troll active: 5% of max health every 2 sec for 20 sec (50% in all), 3 min cooldown. Unlike
     # Cannibalize, moving, acting or taking damage doesn't stop it.
     s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_RAPID_REGENERATION, icon=ICON_REGENERATION, visual=VISUAL_RENEW)
     s[F_RECOVERY_TIME] = 180000
-    s[F_DURATION_INDEX] = DURATION_10_SEC
-    set_aura(s, 0, AURA_OBS_MOD_HEALTH, 10, amplitude=2000)
+    s[F_DURATION_INDEX] = DURATION_20_SEC
+    set_aura(s, 0, AURA_OBS_MOD_HEALTH, 5, amplitude=2000)
     spells.append(s)
 
     return spells
@@ -508,12 +558,16 @@ def new_spells(rows):
 
 def patch_existing(rows):
     """The stock racials the server changes, so their tooltips (and $s values) match."""
-    for spell_id in (SPELL_HUMAN_SWORD_SPEC, SPELL_HUMAN_MACE_SPEC, SPELL_DWARF_MACE_SPEC, SPELL_ORC_AXE_SPEC):
+    for spell_id in (SPELL_HUMAN_SWORD_SPEC, SPELL_HUMAN_MACE_SPEC, SPELL_DWARF_MACE_SPEC, SPELL_GUN_SPEC, SPELL_ORC_AXE_SPEC):
         row = find(rows, spell_id)
         set_aura(row, 0, AURA_MOD_WEAPON_CRIT_PERCENT, WEAPON_CRIT_PERCENT)
         set_aura(row, 1, AURA_MOD_SPELL_CRIT_CHANCE, WEAPON_CRIT_PERCENT)
 
     find(rows, SPELL_HUMAN_SPIRIT)[F_EFFECT_BASE_POINTS] = i32(HUMAN_SPIRIT_PERCENT - 1)
+    find(rows, SPELL_PERCEPTION)[F_RECOVERY_TIME] = PERCEPTION_COOLDOWN_MS
+
+    for spell_id in FOLDED:
+        find(rows, spell_id)[F_ATTRIBUTES] |= SPELL_ATTR0_DO_NOT_DISPLAY
 
     # Diplomacy: still learned (the core teaches racial passives at every login), but it gives
     # 0% and isn't shown in the spellbook.

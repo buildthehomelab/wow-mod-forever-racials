@@ -36,12 +36,13 @@ ForeverRacials.Troll.Enable = 1
 
 #
 #    ForeverRacials.WeaponSpecialization.CritPercent
-#        Description: Crit chance, in whole percent, that the Human (Swords, Maces), Dwarf (Maces)
-#                     and Orc (Axes, Fist Weapons) weapon specializations give instead of
-#                     expertise: melee and ranged attacks with that weapon, and spells while one
-#                     is equipped. WoW Forever gives Humans 2% and Dwarves and Orcs 1%; 2% for all
-#                     three keeps Dwarves and Orcs from losing out on their old 5 expertise.
-#                     Startup only. The client patch's tooltips say 2%.
+#        Description: Crit chance, in whole percent, that the weapon specializations give: Human
+#                     (Swords, Maces) and Dwarf (Maces) instead of 3 or 5 expertise, Orc (Axes, Fist
+#                     Weapons) instead of 5 expertise, and Dwarf Guns instead of 1%. It counts for
+#                     melee and ranged attacks with that weapon, and spells while one is equipped.
+#                     WoW Forever gives Humans 2% and Dwarves and Orcs 1%; 2% for all three keeps
+#                     Dwarves and Orcs from losing out on their old 5 expertise. Startup only. The
+#                     client patch's tooltips say 2%.
 #        Default:     2
 #
 
@@ -52,11 +53,11 @@ ForeverRacials.WeaponSpecialization.CritPercent = 2
 #        Description: Blood Fury gives this percentage of the Orc's attack power, ranged attack
 #                     power and spell power (healing power for shamans), or its old flat amount
 #                     if that's more. 0 keeps the flat amount. The client patch's tooltip says
-#                     10%.
-#        Default:     10
+#                     15%.
+#        Default:     15
 #
 
-ForeverRacials.BloodFury.Percent = 10
+ForeverRacials.BloodFury.Percent = 15
 
 #
 #    ForeverRacials.TouchOfTheGrave.WeaponChance

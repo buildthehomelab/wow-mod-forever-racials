@@ -5,27 +5,31 @@
  * 3.3.5 and gains what WoW Forever gives it. The one removal is the Humans' Diplomacy. Blood
  * Elves and Draenei aren't in WoW Forever and are left alone.
  *
- *   Human     Sword and Mace Specialization give 2% crit (melee, ranged and spells) instead of 3
- *             expertise. The Human Spirit gives 5% Spirit (was 3%). Humans learn Perception
- *             again (stealth detection for 20 sec, 3 min), a spell the client still has.
- *             Diplomacy is gone, as in WoW Forever.
- *   Dwarf     Mace Specialization gives 2% crit instead of 5 expertise. Stoneform also cuts
- *             physical damage taken by 10%. New passive Big Game Hunter: 5% more damage to
- *             Beasts.
- *   Night Elf Quickness adds 2% run speed. New active Elune's Light: 10% crit for 15 sec.
- *   Gnome     Escape Artist leaves you immune to roots and snares for 3 sec. Expansive Mind also
- *             raises max mana, rage, energy and runic power by 5%. New active Eureka!: the next
- *             3 spells or abilities cost 25% less and deal 10% more damage or healing.
- *   Orc       Axe Specialization gives 2% crit instead of 5 expertise. Blood Fury gives attack
- *             power and spell power: 10% of yours, or its old flat amount if that's more.
- *             Hardiness is 20% (was 15%). New active Shatter Curse: breaks curses, curse
- *             immunity and 10% less magic damage taken for 8 sec.
- *   Undead    Cannibalize restores mana as well as health. New passive Touch of the Grave:
- *             weapon attacks (5%) and harmful spells (10%) can drain the target.
- *   Tauren    Endurance adds 1% hit. New passive Plainsrunning: speed builds while you keep
- *             moving, 1% a second up to 5%. New active Cultivation: grows a herb for your level
- *             that anyone can gather.
- *   Troll     New active Rapid Regeneration: 50% of max health over 10 sec.
+ * Like WoW Forever, each race shows 2 actives and 2 passives. The extra 3.3.5 racials
+ * (resistances, Command, Gun, Bow and Throwing Specialization, Elusiveness, Da Voodoo Shuffle,
+ * Cultivation's +15 Herbalism) keep working unchanged; patch-P hides them from the spellbook and
+ * lists them in the tooltip of the passive they're folded into.
+ *
+ *   Human     Every Man for Himself, Perception (back, 2 min) | Sword Specialization (2% crit
+ *             with swords and maces instead of 3 expertise), The Human Spirit (5% Spirit, was
+ *             3%). Diplomacy is gone, as in WoW Forever.
+ *   Dwarf     Stoneform (also 10% less physical damage), Find Treasure | Mace Specialization
+ *             (2% crit with maces and guns), Big Game Hunter (new: 5% more damage to Beasts).
+ *   Night Elf Shadowmeld, Elune's Light (new: 10% crit for 15 sec) | Quickness (adds 2% run
+ *             speed), Wisp Spirit.
+ *   Gnome     Escape Artist (then 3 sec immune to roots and snares), Eureka! (new: next 3 spells
+ *             cost 50% less and deal 30% more) | Expansive Mind (also 5% max mana, rage, energy
+ *             and runic power), Engineering Specialization.
+ *   Orc       Blood Fury (attack power and spell power: 15% of yours, or the old flat amount if
+ *             that's more), Shatter Curse (new: curse immunity, 10% less magic damage, 8 sec) |
+ *             Axe Specialization (2% crit instead of 5 expertise), Hardiness (20%, was 15%).
+ *   Undead    Will of the Forsaken, Cannibalize (restores mana too) | Touch of the Grave (new:
+ *             weapon attacks 5% and harmful spells 10% chance to drain), Underwater Breathing.
+ *   Tauren    War Stomp, Cultivation (new: grows a herb for your level that anyone can gather) |
+ *             Endurance (adds 1% hit), Plainsrunning (new: 1% speed a second while moving, up to
+ *             5%).
+ *   Troll     Berserking, Rapid Regeneration (new: 50% of max health over 20 sec) |
+ *             Regeneration, Beast Slaying.
  *
  * The new spells (90100-90111) come from spell_dbc on the server and patch-P on the client
  * (tools/build_patch.py). The stock racials are changed in memory when the server starts;
@@ -75,6 +79,7 @@ namespace
     constexpr uint32 SPELL_HUMAN_SWORD_SPEC = 20597;
     constexpr uint32 SPELL_HUMAN_MACE_SPEC = 20864;
     constexpr uint32 SPELL_DWARF_MACE_SPEC = 59224;
+    constexpr uint32 SPELL_DWARF_GUN_SPEC = 20595;
     constexpr uint32 SPELL_ORC_AXE_SPEC = 20574;
     constexpr uint32 SPELL_HUMAN_SPIRIT = 20598;
     constexpr uint32 SPELL_DIPLOMACY = 20599;
@@ -92,6 +97,7 @@ namespace
     // The fixed values the client patch's tooltips show. Changing them means rebuilding patch-P
     // (tools/build_patch.py has the same numbers).
     constexpr int32 HUMAN_SPIRIT_PERCENT = 5;
+    constexpr uint32 PERCEPTION_COOLDOWN_MS = 120000;
     constexpr int32 STONEFORM_PHYSICAL_REDUCTION = 10;
     constexpr int32 QUICKNESS_SPEED_PERCENT = 2;
     constexpr int32 EXPANSIVE_MIND_POWER_PERCENT = 5;
@@ -118,7 +124,7 @@ namespace
         bool troll = true;
 
         int32 weaponCritPercent = 2;
-        float bloodFuryPercent = 10.0f;
+        float bloodFuryPercent = 15.0f;
 
         float touchWeaponChance = 5.0f;
         float touchSpellChance = 10.0f;
@@ -204,6 +210,9 @@ namespace
         if (SpellInfo* spirit = MutableSpell(SPELL_HUMAN_SPIRIT))
             spirit->Effects[EFFECT_0].BasePoints = HUMAN_SPIRIT_PERCENT - 1;
 
+        if (SpellInfo* perception = MutableSpell(SPELL_PERCEPTION))
+            perception->RecoveryTime = PERCEPTION_COOLDOWN_MS;
+
         // Diplomacy can't simply be unlearned: the core teaches racial passives again from the
         // Human skill line at every login. So it stays learned but gives 0% reputation (base
         // points + 1 on a one-sided die), and patch-P hides it from the spellbook.
@@ -214,6 +223,7 @@ namespace
     void ApplyDwarfChanges()
     {
         MakeCritSpecialization(SPELL_DWARF_MACE_SPEC);
+        MakeCritSpecialization(SPELL_DWARF_GUN_SPEC); // was 1% ranged crit with guns
 
         // Stoneform's buff (cast with it through spell_linked_spell) keeps its 10% armor.
         if (SpellInfo* stoneform = MutableSpell(SPELL_STONEFORM_BUFF))
@@ -633,7 +643,7 @@ public:
             config.weaponCritPercent = sConfigMgr->GetOption<int32>("ForeverRacials.WeaponSpecialization.CritPercent", 2);
         }
 
-        config.bloodFuryPercent = sConfigMgr->GetOption<float>("ForeverRacials.BloodFury.Percent", 10.0f);
+        config.bloodFuryPercent = sConfigMgr->GetOption<float>("ForeverRacials.BloodFury.Percent", 15.0f);
 
         config.touchWeaponChance     = sConfigMgr->GetOption<float>("ForeverRacials.TouchOfTheGrave.WeaponChance", 5.0f);
         config.touchSpellChance      = sConfigMgr->GetOption<float>("ForeverRacials.TouchOfTheGrave.SpellChance", 10.0f);

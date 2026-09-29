@@ -184,6 +184,26 @@ tools/build_patch.py --dbc Spell.dbc --out-dir DBFilesClient
 them). Packing needs StormLib (`brew install stormlib`); point `STORMLIB` at `libstorm` if it
 isn't in `/usr/local/lib`.
 
+## Character creation screen
+
+The character creation screen doesn't read Spell.dbc: its racial list comes from the
+`ABILITY_INFO_<RACE><n>` strings in the client's `Interface\GlueXML\GlueStrings.lua`. So patch-P
+doesn't change it. `tools/build_glue_patch.py` rewrites those strings to the 2 + 2 kits (leaving
+every other string alone) and packs them into their own patch:
+
+```bash
+tools/build_glue_patch.py --from-mpq patch-7.MPQ --out patch-G.MPQ   # from a login patch you ship
+tools/build_glue_patch.py --glue GlueStrings.lua --out patch-G.MPQ   # from the client's own file
+```
+
+The client replaces the whole file, so start from the GlueStrings.lua your players already have
+(a login tweak's `patch-7.MPQ`, or the stock one from `locale-enUS.MPQ`), and give the patch a
+letter that sorts after that patch's (letters sort after digits).
+
+**The 3.3.5 client may refuse changed interface files** unless it runs a Wow.exe that allows
+interface edits. Try the patch on one client first, and ship it as its own optional patch, not
+inside patch-P, so players on the stock Wow.exe aren't affected.
+
 ## How it works
 
 - **New spells** (90100-90111) are rows in `spell_dbc` for the server and in patch-P's Spell.dbc

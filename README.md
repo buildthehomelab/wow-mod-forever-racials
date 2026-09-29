@@ -1,10 +1,11 @@
 # Forever Racials
 
 An [AzerothCore](https://www.azerothcore.org/) (WotLK 3.3.5a) module that brings WoW Forever's
-racial rework to a 3.3.5 server, **as buffs only**: every race keeps what it has in 3.3.5 and
-gains what WoW Forever gives it. Where WoW Forever weakens a racial (Every Man for Himself only
-breaking stuns, Berserking at 10%) or drops one (Diplomacy, Command, resistances, gun and bow
-specializations), the 3.3.5 version stays.
+racial rework to a 3.3.5 server, **as buffs**: every race keeps what it has in 3.3.5 and gains
+what WoW Forever gives it. Where WoW Forever weakens a racial (Every Man for Himself only
+breaking stuns, Berserking at 10%) or drops one (Command, resistances, gun and bow
+specializations), the 3.3.5 version stays. The one removal is the Humans' **Diplomacy**, which
+goes as in WoW Forever.
 
 Blood Elves and Draenei aren't in WoW Forever and are left alone. WoW Forever's Skyborne race
 isn't possible on a 3.3.5 client.
@@ -16,7 +17,7 @@ see or cast them. The changes to existing racials work without it, but their too
 
 | Race | Changed | New |
 |------|---------|-----|
-| **Human** | Sword and Mace Specialization: **2% crit** instead of 3 expertise. The Human Spirit: **5% Spirit** (was 3%). | **Perception** (back from Classic): stealth detection for 20 sec, 3 min cooldown. |
+| **Human** | Sword and Mace Specialization: **2% crit** instead of 3 expertise. The Human Spirit: **5% Spirit** (was 3%). Diplomacy: **removed**. | **Perception** (back from Classic): stealth detection for 20 sec, 3 min cooldown. |
 | **Dwarf** | Mace Specialization: **2% crit** instead of 5 expertise. Stoneform: also **10% less physical damage** taken. | **Big Game Hunter** (passive): 5% more damage to Beasts. |
 | **Night Elf** | Quickness: also **2% run speed**. | **Elune's Light**: 10% crit for 15 sec, 2 min cooldown. |
 | **Gnome** | Escape Artist: leaves you **immune to roots and snares for 3 sec**. Expansive Mind: also **5% max mana, rage, energy and runic power**. | **Eureka!**: your next 3 spells or abilities within 20 sec cost 25% less and deal 10% more damage or healing. 2 min cooldown. |
@@ -25,7 +26,7 @@ see or cast them. The changes to existing racials work without it, but their too
 | **Tauren** | Endurance: also **1% hit** with attacks and spells. | **Plainsrunning** (passive): 1% speed for each second you keep moving, up to 5%. **Cultivation**: grows a herb anyone can gather. 10 min cooldown. |
 | **Troll** | — | **Rapid Regeneration**: 50% of max health over 10 sec, 3 min cooldown. |
 
-Everything else is unchanged: Every Man for Himself, Diplomacy, Find Treasure, Gun Specialization,
+Everything else is unchanged: Every Man for Himself, Find Treasure, Gun Specialization,
 Frost Resistance, Shadowmeld, Wisp Spirit, Nature Resistance, Elusiveness, Arcane Resistance,
 Engineering Specialization, Command, Will of the Forsaken, Underwater Breathing, Shadow
 Resistance, War Stomp, Cultivation's +15 Herbalism, Berserking, Regeneration, Beast Slaying, Bow
@@ -68,6 +69,10 @@ minutes, or when you leave the map. Outdoors only. With
 [mod-individual-progression](https://github.com/ZhengPeiRu21/mod-individual-progression), Outland
 herbs wait until the player has reached Outland and Northrend herbs until Northrend.
 
+**Diplomacy** can't simply be unlearned, because the core teaches racial passives again from the
+Human skill line at every login. It stays learned but gives 0% reputation, and the client patch
+hides it from the spellbook. Without the patch it still shows, doing nothing.
+
 **Escape Artist's immunity** is a 3 sec buff named Escape Artist.
 
 **Stoneform's** physical damage cut is on the same 8 sec buff as its armor.
@@ -102,7 +107,7 @@ added to the world database on the next start.
 
 | Setting | Default | What it does |
 |---------|---------|--------------|
-| `ForeverRacials.<Race>.Enable` | `1` | One per race (`Human`, `Dwarf`, `NightElf`, `Gnome`, `Orc`, `Undead`, `Tauren`, `Troll`). With `0`, that race keeps its stock racials and loses the new spells at its next login. Startup only. |
+| `ForeverRacials.<Race>.Enable` | `1` | One per race (`Human`, `Dwarf`, `NightElf`, `Gnome`, `Orc`, `Undead`, `Tauren`, `Troll`). With `0`, that race keeps its stock racials (Humans get Diplomacy back) and loses the new spells at its next login. Startup only. |
 | `ForeverRacials.WeaponSpecialization.CritPercent` | `2` | Crit the weapon specializations give. Startup only. |
 | `ForeverRacials.BloodFury.Percent` | `10` | Blood Fury's share of your attack power and spell power. `0` keeps the flat amounts. |
 | `ForeverRacials.TouchOfTheGrave.WeaponChance` / `SpellChance` | `5` / `10` | Proc chance in percent. |

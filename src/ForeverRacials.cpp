@@ -1,13 +1,14 @@
 /*
  * mod-forever-racials
  *
- * WoW Forever's racial rework on a 3.3.5 server, done as buffs only: every race keeps what it has
- * in 3.3.5 and gains what WoW Forever gives it, so no race gets weaker. Blood Elves and Draenei
- * aren't in WoW Forever and are left alone.
+ * WoW Forever's racial rework on a 3.3.5 server, done as buffs: every race keeps what it has in
+ * 3.3.5 and gains what WoW Forever gives it. The one removal is the Humans' Diplomacy. Blood
+ * Elves and Draenei aren't in WoW Forever and are left alone.
  *
  *   Human     Sword and Mace Specialization give 2% crit (melee, ranged and spells) instead of 3
  *             expertise. The Human Spirit gives 5% Spirit (was 3%). Humans learn Perception
  *             again (stealth detection for 20 sec, 3 min), a spell the client still has.
+ *             Diplomacy is gone, as in WoW Forever.
  *   Dwarf     Mace Specialization gives 2% crit instead of 5 expertise. Stoneform also cuts
  *             physical damage taken by 10%. New passive Big Game Hunter: 5% more damage to
  *             Beasts.
@@ -76,6 +77,7 @@ namespace
     constexpr uint32 SPELL_DWARF_MACE_SPEC = 59224;
     constexpr uint32 SPELL_ORC_AXE_SPEC = 20574;
     constexpr uint32 SPELL_HUMAN_SPIRIT = 20598;
+    constexpr uint32 SPELL_DIPLOMACY = 20599;
     constexpr uint32 SPELL_STONEFORM_BUFF = 65116;
     constexpr uint32 SPELL_QUICKNESS = 20582;
     constexpr uint32 SPELL_ESCAPE_ARTIST = 20589;
@@ -201,6 +203,12 @@ namespace
 
         if (SpellInfo* spirit = MutableSpell(SPELL_HUMAN_SPIRIT))
             spirit->Effects[EFFECT_0].BasePoints = HUMAN_SPIRIT_PERCENT - 1;
+
+        // Diplomacy can't simply be unlearned: the core teaches racial passives again from the
+        // Human skill line at every login. So it stays learned but gives 0% reputation (base
+        // points + 1 on a one-sided die), and patch-P hides it from the spellbook.
+        if (SpellInfo* diplomacy = MutableSpell(SPELL_DIPLOMACY))
+            diplomacy->Effects[EFFECT_0].BasePoints = -1;
     }
 
     void ApplyDwarfChanges()

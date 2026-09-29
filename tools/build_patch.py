@@ -18,10 +18,10 @@ What it changes:
   Grave (the passive and the drain), Plainsrunning (the passive and the speed buff), Cultivation
   and Rapid Regeneration. The server gets the same rows from spell_dbc.
 - The existing racials the server changes: the Human, Dwarf and Orc weapon specializations give
-  crit instead of expertise, The Human Spirit gives 5% Spirit, Stoneform also cuts physical damage,
-  Quickness adds run speed, Escape Artist adds its immunity, Expansive Mind adds max mana, Blood
-  Fury gives attack power and spell power, Hardiness is 20%, Cannibalize restores mana too and
-  Endurance adds hit. The client uses these for tooltips; the server decides what they do.
+  crit instead of expertise, The Human Spirit gives 5% Spirit, Diplomacy is hidden (the server
+  makes it give nothing), Stoneform also cuts physical damage, Quickness adds run speed, Escape
+  Artist adds its immunity, Expansive Mind adds max mana, Blood Fury gives attack power and spell
+  power, Hardiness is 20%, Cannibalize restores mana too and Endurance adds hit. The client uses these for tooltips; the server decides what they do.
 
 Running it again gives the same result, so it's safe to rebuild. Packing needs StormLib
 (libstorm). Point STORMLIB at it if it isn't /usr/local/lib/libstorm.dylib.
@@ -75,6 +75,7 @@ SPELL_HUMAN_MACE_SPEC = 20864
 SPELL_DWARF_MACE_SPEC = 59224
 SPELL_ORC_AXE_SPEC = 20574
 SPELL_HUMAN_SPIRIT = 20598
+SPELL_DIPLOMACY = 20599
 SPELL_STONEFORM = 20594
 SPELL_STONEFORM_BUFF = 65116
 SPELL_QUICKNESS = 20582
@@ -514,6 +515,12 @@ def patch_existing(rows):
 
     find(rows, SPELL_HUMAN_SPIRIT)[F_EFFECT_BASE_POINTS] = i32(HUMAN_SPIRIT_PERCENT - 1)
 
+    # Diplomacy: still learned (the core teaches racial passives at every login), but it gives
+    # 0% and isn't shown in the spellbook.
+    row = find(rows, SPELL_DIPLOMACY)
+    row[F_ATTRIBUTES] |= SPELL_ATTR0_DO_NOT_DISPLAY
+    row[F_EFFECT_BASE_POINTS] = i32(-1)
+
     set_aura(find(rows, SPELL_STONEFORM_BUFF), 1, AURA_MOD_DAMAGE_PERCENT_TAKEN,
              -STONEFORM_PHYSICAL_REDUCTION, misc=SCHOOL_MASK_PHYSICAL)
 
@@ -597,8 +604,8 @@ def patch_spell_dbc(src, dst):
             set_texts(find(rows, spell_id), strings)
 
     write_dbc(dst, rows, strings, FIELDS)
-    print(f"{dst}: new spells {', '.join(str(s[F_ID]) for s in added)}; "
-          f"{len([t for t in TEXTS if t < 90000])} stock racials updated")
+    print(f"{dst}: new spells {', '.join(str(s[F_ID]) for s in added)} "
+          "and the changed stock racials")
 
 
 # --- SQL ------------------------------------------------------------------------------------

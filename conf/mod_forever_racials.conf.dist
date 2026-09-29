@@ -3,8 +3,9 @@
 ########################################
 # mod-forever-racials
 #
-# WoW Forever's racial rework, done as buffs only: every race keeps its 3.3.5 racials and gains
-# WoW Forever's. Blood Elves and Draenei are unchanged. The new spells need the client patch
+# WoW Forever's racial rework, done as buffs: every race keeps its 3.3.5 racials and gains WoW
+# Forever's, except Humans, who lose Diplomacy as in WoW Forever. Blood Elves and Draenei are
+# unchanged. The new spells need the client patch
 # (tools/build_patch.py); without it players can't see or cast them.
 ########################################
 
@@ -17,8 +18,8 @@
 #    ForeverRacials.Undead.Enable
 #    ForeverRacials.Tauren.Enable
 #    ForeverRacials.Troll.Enable
-#        Description: One switch per race. With 0, that race keeps its stock 3.3.5 racials and
-#                     loses the new spells at its next login. Read at startup only: changing
+#        Description: One switch per race. With 0, that race keeps its stock 3.3.5 racials (so
+#                     Humans keep Diplomacy) and loses the new spells at its next login. Read at startup only: changing
 #                     them needs a restart, because the stock racials are changed when the
 #                     server starts. The client patch's tooltips stay either way.
 #        Default:     1

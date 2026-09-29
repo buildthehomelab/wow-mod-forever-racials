@@ -192,8 +192,8 @@ doesn't change it. `tools/build_glue_patch.py` rewrites those strings to the 2 +
 every other string alone) and packs them into their own patch:
 
 ```bash
-tools/build_glue_patch.py --from-mpq patch-7.MPQ --out patch-G.MPQ   # from a login patch you ship
-tools/build_glue_patch.py --glue GlueStrings.lua --out patch-G.MPQ   # from the client's own file
+tools/build_glue_patch.py --from-mpq patch-7.MPQ --out patch-R.MPQ   # from a login patch you ship
+tools/build_glue_patch.py --glue GlueStrings.lua --out patch-R.MPQ   # from the client's own file
 ```
 
 The client replaces the whole file, so start from the GlueStrings.lua your players already have

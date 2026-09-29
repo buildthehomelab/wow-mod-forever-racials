@@ -1,0 +1,121 @@
+[worldserver]
+
+########################################
+# mod-forever-racials
+#
+# WoW Forever's racial rework, done as buffs only: every race keeps its 3.3.5 racials and gains
+# WoW Forever's. Blood Elves and Draenei are unchanged. The new spells need the client patch
+# (tools/build_patch.py); without it players can't see or cast them.
+########################################
+
+#
+#    ForeverRacials.Human.Enable
+#    ForeverRacials.Dwarf.Enable
+#    ForeverRacials.NightElf.Enable
+#    ForeverRacials.Gnome.Enable
+#    ForeverRacials.Orc.Enable
+#    ForeverRacials.Undead.Enable
+#    ForeverRacials.Tauren.Enable
+#    ForeverRacials.Troll.Enable
+#        Description: One switch per race. With 0, that race keeps its stock 3.3.5 racials and
+#                     loses the new spells at its next login. Read at startup only: changing
+#                     them needs a restart, because the stock racials are changed when the
+#                     server starts. The client patch's tooltips stay either way.
+#        Default:     1
+#
+
+ForeverRacials.Human.Enable = 1
+ForeverRacials.Dwarf.Enable = 1
+ForeverRacials.NightElf.Enable = 1
+ForeverRacials.Gnome.Enable = 1
+ForeverRacials.Orc.Enable = 1
+ForeverRacials.Undead.Enable = 1
+ForeverRacials.Tauren.Enable = 1
+ForeverRacials.Troll.Enable = 1
+
+#
+#    ForeverRacials.WeaponSpecialization.CritPercent
+#        Description: Crit chance, in whole percent, that the Human (Swords, Maces), Dwarf (Maces)
+#                     and Orc (Axes, Fist Weapons) weapon specializations give instead of
+#                     expertise: melee and ranged attacks with that weapon, and spells while one
+#                     is equipped. WoW Forever gives Humans 2% and Dwarves and Orcs 1%; 2% for all
+#                     three keeps Dwarves and Orcs from losing out on their old 5 expertise.
+#                     Startup only. The client patch's tooltips say 2%.
+#        Default:     2
+#
+
+ForeverRacials.WeaponSpecialization.CritPercent = 2
+
+#
+#    ForeverRacials.BloodFury.Percent
+#        Description: Blood Fury gives this percentage of the Orc's attack power, ranged attack
+#                     power and spell power (healing power for shamans), or its old flat amount
+#                     if that's more. 0 keeps the flat amount. The client patch's tooltip says
+#                     10%.
+#        Default:     10
+#
+
+ForeverRacials.BloodFury.Percent = 10
+
+#
+#    ForeverRacials.TouchOfTheGrave.WeaponChance
+#    ForeverRacials.TouchOfTheGrave.SpellChance
+#        Description: Chance in percent that an Undead's damaging weapon attack (melee, ranged,
+#                     wand, or a weapon ability) or harmful spell drains the target. Damage over
+#                     time never does. The client patch's tooltip says 5% and 10%.
+#        Default:     5, 10
+#
+
+ForeverRacials.TouchOfTheGrave.WeaponChance = 5
+ForeverRacials.TouchOfTheGrave.SpellChance = 10
+
+#
+#    ForeverRacials.TouchOfTheGrave.PowerPercent
+#    ForeverRacials.TouchOfTheGrave.MaxHealthPercent
+#        Description: The drain deals Shadow damage equal to PowerPercent of the Undead's attack
+#                     power or spell power, whichever is higher, but never more than
+#                     MaxHealthPercent of their own max health, and heals them for what it really
+#                     dealt. With 4000 attack power and 22000 health that's 1000; at level 20,
+#                     with 200 attack power, 50. The client patch's tooltip says 25% and 5%.
+#        Default:     25, 5
+#
+
+ForeverRacials.TouchOfTheGrave.PowerPercent = 25
+ForeverRacials.TouchOfTheGrave.MaxHealthPercent = 5
+
+#
+#    ForeverRacials.TouchOfTheGrave.Cooldown
+#        Description: Minimum milliseconds between two drains. Mostly limits area spells, which
+#                     roll once per target hit. A roll that fails doesn't start it. 0 for none.
+#        Default:     3000
+#
+
+ForeverRacials.TouchOfTheGrave.Cooldown = 3000
+
+#
+#    ForeverRacials.Plainsrunning.SecondsPerStack
+#        Description: Seconds of moving for each 1% of Plainsrunning speed, up to 5%.
+#        Default:     1
+#
+
+ForeverRacials.Plainsrunning.SecondsPerStack = 1
+
+#
+#    ForeverRacials.Cultivation.DespawnSeconds
+#        Description: Seconds before a herb grown with Cultivation withers if nobody gathers it.
+#                     The client patch's tooltip says 2 min.
+#        Default:     120
+#
+
+ForeverRacials.Cultivation.DespawnSeconds = 120
+
+#
+#    ForeverRacials.Cultivation.RespectProgression
+#        Description: With mod-individual-progression running, Cultivation only grows Outland
+#                     herbs once the player has reached Outland (state 8) and Northrend herbs
+#                     once they've reached Northrend (state 13); before that it grows the best
+#                     herbs of the continents they have. 0 goes by level alone.
+#        Default:     1
+#
+
+ForeverRacials.Cultivation.RespectProgression = 1

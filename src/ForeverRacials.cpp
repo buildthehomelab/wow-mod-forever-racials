@@ -352,15 +352,14 @@ namespace
         { RACE_TROLL, SPELL_RAPID_REGENERATION },
     }};
 
-    // Teach the player's race its new spells, or take them away when that race is turned off.
+    // Teach the player's race its new spells, and take away any the player shouldn't have: their
+    // race is turned off, or they changed race (the core only drops racials that are on a skill
+    // line, and these aren't).
     void UpdateRacialSpells(Player* player)
     {
         for (RacialSpell const& racial : RACIAL_SPELLS)
         {
-            if (racial.race != player->getRace())
-                continue;
-
-            bool const shouldKnow = IsRaceEnabled(racial.race);
+            bool const shouldKnow = racial.race == player->getRace() && IsRaceEnabled(racial.race);
             bool const knows = player->HasSpell(racial.spellId);
             if (shouldKnow && !knows)
                 player->learnSpell(racial.spellId);

@@ -5,8 +5,8 @@ into its own patch MPQ.
 
 The character creation screen doesn't read Spell.dbc. Its list of racials comes from the
 ABILITY_INFO_<RACE><n> strings in the client's Interface\\GlueXML\\GlueStrings.lua, so patch-P
-can't change it. This script rewrites those strings to the module's 2 active + 2 passive kits
-and leaves every other string alone:
+can't change it. This script rewrites those strings to the module's one active + one passive
+kits and leaves every other string alone:
 
     python3 build_glue_patch.py --glue GlueStrings.lua --out patch-R.MPQ
 
@@ -37,56 +37,47 @@ import build_patch  # noqa: E402  (StormLib helpers)
 
 GLUE_STRINGS = "Interface\\GlueXML\\GlueStrings.lua"
 
-# The client's race file names. Undead is "SCOURGE". Blood Elves and Draenei aren't changed by the
-# module, so their stock lines stay.
+# The client's race file names. Undead is "SCOURGE". One active and one passive per race.
 ABILITIES = {
     "HUMAN": [
         "Can break out of speed altering and trapping effects.",
         "Stealth detection increased.",
-        "Increased critical chance with Swords and Maces.",
-        "Increased Spirit.",
     ],
     "DWARF": [
-        "May take on a stone form, reducing physical damage.",
+        "May take on a stone form, removing poisons, diseases and bleeds and reducing physical damage.",
         "Treasure finding.",
-        "Increased critical chance with Maces and Guns.",
-        "Damage increased versus beasts. Resistant to Frost.",
     ],
     "NIGHTELF": [
         "May fade into the shadows.",
-        "May call on Elune's light to increase critical chance.",
-        "More difficult to hit. Movement speed increased.",
-        "Wisp form while dead for faster movement. Resistant to Nature damage.",
+        "More difficult to hit. Movement speed increased. Wisp form while dead.",
     ],
     "GNOME": [
         "May escape from speed altering effects.",
-        "Eureka! Next spells cost less and deal more damage or healing.",
-        "Increased Intellect and maximum mana, rage, energy and runic power.",
-        "Engineering skill increased. Resistant to Arcane damage.",
+        "Engineering is faster.",
     ],
     "ORC": [
-        "May enrage to increase attack power and spell power.",
         "May shatter curses and resist magical damage.",
-        "Increased critical chance with Axes and Fist weapons.",
-        "Resistant to stun effects. Damage done by pets increased.",
+        "Resistant to stun effects.",
     ],
     "SCOURGE": [
         "Can remove fear, sleep, and charm.",
-        "May consume corpses to regain health and mana.",
-        "Attacks and spells may drain health from the target. Resistant to Shadow damage.",
-        "Underwater breathing increased.",
+        "Attacks and spells may heal you. Underwater breathing increased.",
     ],
     "TAUREN": [
         "May stomp, stunning nearby opponents.",
-        "May grow herbs anyone can gather. Herbalism skill increased.",
-        "Maximum health and chance to hit increased.",
-        "Movement speed builds while moving. Resistant to Nature damage.",
+        "Health increased. Herb gathering is faster.",
     ],
     "TROLL": [
-        "Berserk, increasing attack and casting speed.",
         "May rapidly regenerate health.",
         "Regeneration increased. Reduced duration of movement reducing effects.",
-        "Damage increased versus beasts. Increased critical chance with Bows and Throwing Weapons.",
+    ],
+    "BLOODELF": [
+        "May silence nearby enemies and restore power.",
+        "Enchanting is faster.",
+    ],
+    "DRAENEI": [
+        "May heal a target over time.",
+        "Jewelcrafting is faster.",
     ],
 }
 

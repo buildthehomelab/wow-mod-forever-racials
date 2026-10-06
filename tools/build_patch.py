@@ -13,19 +13,19 @@ server). Start from that patch so its other spell changes are kept:
 
 What it changes:
 
-- Twelve new spells, 90100-90111 (see NEW SPELLS below): Big Game Hunter, Elune's Light, Escape
-  Artist's immunity, Eureka!, Expansive Mind's hidden power bonus, Shatter Curse, Touch of the
-  Grave (the passive and the drain), Plainsrunning (the passive and the speed buff), Cultivation
-  and Rapid Regeneration. The server gets the same rows from spell_dbc.
-- The 2 active + 2 passive layout: each race's extra racials (resistances, Command, Gun, Bow and
-  Throwing Specialization, and so on; see FOLDED) are hidden from the spellbook and listed in the
-  tooltip of the passive they're folded into. They keep working; the server doesn't change them.
-- The existing racials the server changes: the Human, Dwarf and Orc weapon specializations
-  (and Dwarf Gun Specialization) give 2% crit instead of expertise, Perception has a 2 min
-  cooldown, The Human Spirit gives 5% Spirit, Diplomacy is hidden (the server
-  makes it give nothing), Stoneform also cuts physical damage, Quickness adds run speed, Escape
-  Artist adds its immunity, Expansive Mind adds max mana, Blood Fury gives attack power and spell
-  power, Hardiness is 20%, Cannibalize restores mana too and Endurance adds hit. The client uses these for tooltips; the server decides what they do.
+- The class spells: a mastery for every class (90140-90148) and a class cooldown (90150-90159).
+- The racials that are new spells: Escape Artist's immunity (90102), Shatter Curse (90105),
+  Touch of the Grave and its heal (90106, 90107) and Rapid Regeneration (90111). The server gets
+  the same rows from spell_dbc.
+- The kept stock racials the server changes, so their tooltips match: Stoneform, Quickness,
+  Escape Artist, Hardiness, Endurance (back to stock, without the previous version's hit), and
+  the profession racials (Engineering Specialization, Gemcutting, Arcane Affinity, Cultivation),
+  which now make their profession faster.
+- Each race shows one active and one passive: the extra kept racials (Wisp Spirit, Elusiveness,
+  Underwater Breathing, Da Voodoo Shuffle, Cultivation) are hidden from the spellbook and listed
+  in the tooltip of the passive they're folded into. They keep working.
+
+The stock racials the module removes need no client change: the server takes them off.
 
 Running it again gives the same result, so it's safe to rebuild. Packing needs StormLib
 (libstorm). Point STORMLIB at it if it isn't /usr/local/lib/libstorm.dylib.
@@ -43,114 +43,116 @@ import tempfile
 
 # Must match src/ForeverRacials.cpp and the defaults in conf/mod_forever_racials.conf.dist. If you
 # change those settings, change these and build the patch again.
-WEAPON_CRIT_PERCENT = 2
-HUMAN_SPIRIT_PERCENT = 5
+MASTERY_HIT_PERCENT = 2
+MASTERY_CRIT_PERCENT = 2
+MASTERY_SPELL_HIT_PERCENT = 4
+MASTERY_SPELL_CRIT_PERCENT = 2
+PROFESSION_SPEED_PERCENT = 25
 STONEFORM_PHYSICAL_REDUCTION = 10
 QUICKNESS_SPEED_PERCENT = 2
-EXPANSIVE_MIND_POWER_PERCENT = 5
-BLOOD_FURY_PERCENT = 15
 HARDINESS_PERCENT = 20
-CANNIBALIZE_MANA_PERCENT = 7
-ENDURANCE_HIT_PERCENT = 1
 TOUCH_WEAPON_CHANCE = 5
 TOUCH_SPELL_CHANCE = 10
-TOUCH_POWER_PERCENT = 25
+TOUCH_HEAL_PERCENT = 25
 TOUCH_MAX_HEALTH_PERCENT = 5
-PLAINSRUNNING_MAX_STACKS = 5
-CULTIVATION_MINUTES = 2
-PERCEPTION_COOLDOWN_MS = 120000
-EUREKA_DAMAGE_PERCENT = 30
-EUREKA_COST_PERCENT = 50
 
-# --- New spells: must match the SQL (printed by --sql) and src/ForeverRacials.cpp ---------------
-SPELL_BIG_GAME_HUNTER = 90100
-SPELL_ELUNES_LIGHT = 90101
+# Class cooldowns: 2 min, 15 sec each.
+COOLDOWN_MS = 120000
+POWER_PERCENT = 15        # attack power, spell power, healing, the demon's damage
+HASTE_PERCENT = 10        # attack or casting speed
+ENERGY_REGEN_PERCENT = 20
+RAGE = 10                 # Battle Fury, and Wild Instinct in Bear Form
+RUNIC_POWER = 15
+
+# The weapons each physical mastery counts (item subclasses; the server reads them from the
+# config, ForeverRacials.Mastery.<Class>.Weapons, so keep both the same).
+WEAPONS = {
+    "Warrior": [0, 1, 4, 5, 6, 7, 8, 13],
+    "Paladin": [0, 1, 4, 5, 6, 7, 8],
+    "Hunter": [2, 3, 18],
+    "Rogue": [0, 4, 7, 13, 15],
+    "DeathKnight": [0, 1, 4, 5, 6, 7, 8],
+    "Shaman": [0, 1, 4, 5, 13, 15],
+    "Caster": [19],
+}
+
+# --- Spells: must match the SQL (printed by --sql) and src/ForeverRacials.cpp -------------------
 SPELL_ESCAPE_ARTIST_IMMUNITY = 90102
-SPELL_EUREKA = 90103
-SPELL_EXPANSIVE_MIND_POWER = 90104
 SPELL_SHATTER_CURSE = 90105
 SPELL_TOUCH_OF_THE_GRAVE = 90106
-SPELL_TOUCH_OF_THE_GRAVE_DRAIN = 90107
-SPELL_PLAINSRUNNING = 90108
-SPELL_PLAINSRUNNING_SPEED = 90109
-SPELL_CULTIVATION = 90110
+SPELL_TOUCH_OF_THE_GRAVE_HEAL = 90107
 SPELL_RAPID_REGENERATION = 90111
 
-# Existing racials the module changes.
-SPELL_HUMAN_SWORD_SPEC = 20597
-SPELL_HUMAN_MACE_SPEC = 20864
-SPELL_DWARF_MACE_SPEC = 59224
-SPELL_ORC_AXE_SPEC = 20574
-SPELL_HUMAN_SPIRIT = 20598
-SPELL_DIPLOMACY = 20599
+SPELL_MASTERY = {   # physical masteries, by the WEAPONS key
+    "Warrior": 90140,
+    "Paladin": 90141,
+    "Hunter": 90142,
+    "Rogue": 90143,
+    "DeathKnight": 90144,
+    "Shaman": 90145,
+    "Caster": 90146,
+}
+SPELL_MASTERY_SPELL = 90147
+SPELL_MASTERY_FERAL = 90148
+
+SPELL_BATTLE_FURY = 90150
+SPELL_CRUSADERS_ZEAL = 90151
+SPELL_PACK_FURY = 90152
+SPELL_CUTTHROAT_RUSH = 90153
+SPELL_INNER_FERVOR = 90154
+SPELL_GRAVE_FURY = 90155
+SPELL_ANCESTRAL_FURY = 90156
+SPELL_ARCANE_FERVOR = 90157
+SPELL_FEL_FRENZY = 90158
+SPELL_WILD_INSTINCT = 90159
+
+# Kept stock racials the module changes.
 SPELL_STONEFORM = 20594
 SPELL_STONEFORM_BUFF = 65116
 SPELL_QUICKNESS = 20582
 SPELL_ESCAPE_ARTIST = 20589
-SPELL_EXPANSIVE_MIND = 20591
-SPELL_BLOOD_FURY_AP = 20572      # warriors, rogues, hunters, death knights
-SPELL_BLOOD_FURY_BOTH = 33697    # shamans
-SPELL_BLOOD_FURY_SP = 33702      # mages, warlocks
 SPELL_HARDINESS = 20573
-SPELL_CANNIBALIZE = 20577
-SPELL_CANNIBALIZE_HEAL = 20578
 SPELL_ENDURANCE = 20550
-SPELL_PERCEPTION = 20600
-SPELL_GUN_SPEC = 20595
-SPELL_WISP_SPIRIT = 20585
-SPELL_ENGINEERING_SPEC = 20593
 SPELL_REGENERATION = 20555
-SPELL_BEAST_SLAYING = 20557
+SPELL_ENGINEERING_SPEC = 20593
+SPELL_GEMCUTTING = 28875
+SPELL_ARCANE_AFFINITY = 28877
+SPELL_CULTIVATION = 20552
+PROFESSION_RACIALS = (SPELL_ENGINEERING_SPEC, SPELL_GEMCUTTING, SPELL_ARCANE_AFFINITY, SPELL_CULTIVATION)
 
-# The 2 active + 2 passive layout: each race's extra racials keep working on the server but are
-# hidden from the client's spellbook, and the passive they're folded into lists them in its
-# tooltip (see TEXTS).
+# One active and one passive per race: these kept racials are hidden from the spellbook, and the
+# passive they're folded into lists them in its tooltip (see TEXTS).
 FOLDED = {
-    SPELL_HUMAN_MACE_SPEC: "Sword Specialization",
-    SPELL_GUN_SPEC: "Mace Specialization",
-    20596: "Big Game Hunter",               # Frost Resistance
-    20583: "Wisp Spirit",                   # Nature Resistance (Night Elf)
-    21009: "Wisp Spirit",                   # Elusiveness
-    20592: "Engineering Specialization",    # Arcane Resistance
-    20575: "Hardiness",                     # Command
-    20579: "Touch of the Grave",            # Shadow Resistance
-    20551: "Plainsrunning",                 # Nature Resistance (Tauren)
-    20552: "Cultivation",                   # Cultivation's +15 Herbalism
-    58943: "Regeneration",                  # Da Voodoo Shuffle
-    26290: "Beast Slaying",                 # Bow Specialization
-    20558: "Beast Slaying",                 # Throwing Specialization
+    20585: "Quickness",            # Wisp Spirit
+    21009: "Quickness",            # Elusiveness
+    5227: "Touch of the Grave",    # Underwater Breathing
+    58943: "Regeneration",         # Da Voodoo Shuffle
+    SPELL_CULTIVATION: "Endurance",
 }
 
 # SpellDuration.dbc
 DURATION_3_SEC = 27
 DURATION_8_SEC = 31
-DURATION_10_SEC = 1
 DURATION_15_SEC = 8
 DURATION_20_SEC = 18
-DURATION_INFINITE = 21
 
 # --- Spell.dbc layout (3.3.5a, build 12340) -------------------------------------------------
 FIELDS = 234
 F_ID = 0
-F_DISPEL = 2
 F_ATTRIBUTES = 4
-F_ATTRIBUTES_EX = 5       # Ex1..Ex7 follow
 F_ATTRIBUTES_EX2 = 6
 F_ATTRIBUTES_EX3 = 7
 F_STANCES = 12
 F_STANCES_NOT = 14
 F_RECOVERY_TIME = 29
-F_CATEGORY_RECOVERY_TIME = 30
-F_AURA_INTERRUPT_FLAGS = 32
-F_PROC_FLAGS = 34
-F_PROC_CHANCE = 35
 F_PROC_CHARGES = 36
 F_MAX_LEVEL = 37
 F_BASE_LEVEL = 38
 F_SPELL_LEVEL = 39
 F_DURATION_INDEX = 40
-F_STACK_AMOUNT = 49
 F_EQUIPPED_ITEM_CLASS = 68
+F_EQUIPPED_ITEM_SUBCLASS_MASK = 69
+F_EQUIPPED_ITEM_INVENTORY_TYPE_MASK = 70
 F_EFFECT = 71             # 3 each from here on
 F_EFFECT_DIE_SIDES = 74
 F_EFFECT_REAL_POINTS_PER_LEVEL = 77
@@ -184,41 +186,37 @@ STRING_FIELDS = [F_NAME + i for i in range(16)] + [F_NAME_SUBTEXT + i for i in r
 # EffectBonusMultiplier: the float columns of AzerothCore's spell_dbc table.
 FLOAT_FIELDS = {47, 77, 78, 79, 101, 102, 103, 119, 120, 121, 216, 217, 218, 229, 230, 231}
 
-SPELL_ATTR0_PASSIVE = 0x40
 SPELL_ATTR0_DO_NOT_DISPLAY = 0x80
-SPELL_ATTR0_ONLY_OUTDOORS = 0x8000
 SPELL_ATTR2_CANT_CRIT = 0x20000000
 SPELL_ATTR3_SUPPRESS_CASTER_PROCS = 0x00010000
-SPELL_ATTR3_ALWAYS_HIT = 0x00040000
 SPELL_ATTR3_IGNORE_CASTER_MODIFIERS = 0x20000000
 
 SPELL_EFFECT_APPLY_AURA = 6
-SPELL_EFFECT_DUMMY = 3
+SPELL_EFFECT_HEAL = 10
+SPELL_EFFECT_ENERGIZE = 30
 SPELL_EFFECT_TRIGGER_SPELL = 64
 TARGET_UNIT_CASTER = 1
+TARGET_UNIT_PET = 5
 
 AURA_DUMMY = 4
-AURA_OBS_MOD_HEALTH = 20
-AURA_OBS_MOD_POWER = 21
 AURA_MOD_DAMAGE_DONE = 13
+AURA_OBS_MOD_HEALTH = 20
 AURA_DISPEL_IMMUNITY = 41
 AURA_MOD_WEAPON_CRIT_PERCENT = 52
 AURA_MOD_HIT_CHANCE = 54
 AURA_MOD_SPELL_HIT_CHANCE = 55
 AURA_MOD_SPELL_CRIT_CHANCE = 57
-AURA_MOD_POWER_COST_SCHOOL_PCT = 72
+AURA_MOD_CASTING_SPEED = 65
 AURA_MECHANIC_IMMUNITY = 77
 AURA_MOD_DAMAGE_PERCENT_DONE = 79
 AURA_MOD_DAMAGE_PERCENT_TAKEN = 87
-AURA_MOD_ATTACK_POWER = 99
-AURA_MOD_RANGED_ATTACK_POWER = 124
+AURA_MOD_POWER_REGEN_PERCENT = 110
 AURA_MOD_SPEED_ALWAYS = 129
-AURA_MOD_INCREASE_ENERGY_PERCENT = 132
 AURA_MOD_HEALING_DONE = 135
-AURA_MOD_HEALING_DONE_PERCENT = 136
-AURA_MOD_STUN_DURATION = 232  # SPELL_AURA_MECHANIC_DURATION_MOD
-AURA_PERIODIC_DUMMY = 226
-AURA_MOD_CRIT_PCT = 290
+AURA_MOD_MELEE_HASTE = 138
+AURA_MOD_RANGED_HASTE = 140
+AURA_MOD_ATTACK_POWER_PCT = 166
+AURA_MOD_ATTACK_AND_CAST_SPEED = 193  # SPELL_AURA_MELEE_SLOW: attack and casting speed, like Berserking
 
 MECHANIC_ROOT = 7
 MECHANIC_SNARE = 11
@@ -226,125 +224,163 @@ DISPEL_CURSE = 2
 SCHOOL_MASK_PHYSICAL = 1
 SCHOOL_MASK_MAGIC = 126
 SCHOOL_MASK_ALL = 127
-POWER_MANA, POWER_RAGE, POWER_ENERGY, POWER_RUNIC_POWER = 0, 1, 3, 6
+POWER_RAGE, POWER_ENERGY, POWER_RUNIC_POWER = 1, 3, 6
+ITEM_CLASS_WEAPON = 2
+
+# Shapeshift forms, as Stances bits (1 << (form - 1)).
+STANCES_CAT_AND_BEAR = (1 << 0) | (1 << 4) | (1 << 7)  # Cat Form 1, Bear Form 5, Dire Bear Form 8
 
 # Stock spells the new ones are copied from, for their flags, visuals and icons.
 TEMPLATE_RACIAL_PASSIVE = 20557  # Beast Slaying
 TEMPLATE_RACIAL_ACTIVE = 20600   # Perception: instant, on the global cooldown, self buff
+TEMPLATE_COOLDOWN = 20572        # Blood Fury: instant, off the global cooldown, 2 min, 15 sec
 TEMPLATE_STONEFORM = 20594
-TEMPLATE_LIFESTEAL = 43125       # an NPC's instant Shadow health leech, range "anywhere"
-ICON_TRACK_BEASTS = 179
-ICON_ELUNES_BLESSING = 1829
+TEMPLATE_LIFESTEAL = 43125       # an NPC's instant Shadow health leech: the heal's look
 ICON_REMOVE_CURSE = 195
-ICON_ENGINEERING = 353
 ICON_DRAIN_LIFE = 546
-ICON_DASH = 959
-ICON_CULTIVATION = 1626
 ICON_REGENERATION = 149
-VISUAL_ELUNES_BLESSING = 7454
-VISUAL_ARCANE_POWER = 4370
 VISUAL_BLOOD_FURY = 47
-VISUAL_REJUVENATION = 32
 VISUAL_RENEW = 280
 
-# --- Texts ----------------------------------------------------------------------------------
-# (name, description, aura description); None leaves the stock text.
-WEAPON_SPEC = ("Your chance to critically hit with melee and ranged attacks and spells is increased "
-               "by {pct}% while you have {weapons} equipped.")
+# (icon, visual) for each new spell: the icon of a stock spell of that class, so the spellbook
+# reads at a glance.
+LOOKS = {
+    SPELL_MASTERY["Warrior"]: (564, 0),        # Mortal Strike
+    SPELL_MASTERY["Paladin"]: (2309, 0),       # Crusader Strike
+    SPELL_MASTERY["Hunter"]: (2228, 0),        # Steady Shot
+    SPELL_MASTERY["Rogue"]: (130, 0),          # Sinister Strike
+    SPELL_MASTERY["DeathKnight"]: (2639, 0),   # Obliterate
+    SPELL_MASTERY["Shaman"]: (2562, 0),        # Stormstrike
+    SPELL_MASTERY["Caster"]: (677, 0),         # Shoot (wand)
+    SPELL_MASTERY_SPELL: (125, 0),             # Arcane Intellect
+    SPELL_MASTERY_FERAL: (2312, 0),            # Mangle (Cat)
+    SPELL_BATTLE_FURY: (86, VISUAL_BLOOD_FURY),     # Bloodrage
+    SPELL_CRUSADERS_ZEAL: (301, 298),               # Righteous Fury
+    SPELL_PACK_FURY: (1680, VISUAL_BLOOD_FURY),     # Bestial Wrath
+    SPELL_CUTTHROAT_RUSH: (515, 254),               # Slice and Dice
+    SPELL_INNER_FERVOR: (101, 4372),                # Inner Focus
+    SPELL_GRAVE_FURY: (2724, VISUAL_BLOOD_FURY),    # Blood Tap
+    SPELL_ANCESTRAL_FURY: (2024, VISUAL_BLOOD_FURY),  # Shamanistic Rage
+    SPELL_ARCANE_FERVOR: (62, 4370),                # Arcane Power
+    SPELL_FEL_FRENZY: (3174, VISUAL_BLOOD_FURY),    # Demonic Empowerment
+    SPELL_WILD_INSTINCT: (1181, 200),               # Tiger's Fury
+}
 
+# --- Texts ----------------------------------------------------------------------------------
+
+def weapon_list(subclasses):
+    """'Axes, Maces, Swords, Polearms and Fist Weapons' for the tooltips."""
+    names = []
+    pairs = [(0, 1, "Axes"), (4, 5, "Maces"), (7, 8, "Swords")]
+    for one, two, name in pairs:
+        if one in subclasses and two in subclasses:
+            names.append(name)
+        elif one in subclasses:
+            names.append("One-Handed " + name)
+        elif two in subclasses:
+            names.append("Two-Handed " + name)
+    single = {6: "Polearms", 10: "Staves", 13: "Fist Weapons", 15: "Daggers", 2: "Bows", 3: "Guns",
+              18: "Crossbows", 16: "Thrown Weapons", 19: "Wands"}
+    names += [single[s] for s in sorted(single) if s in subclasses]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+MASTERY_NAMES = {
+    "Warrior": "Warrior Mastery", "Paladin": "Paladin Mastery", "Hunter": "Hunter Mastery",
+    "Rogue": "Rogue Mastery", "DeathKnight": "Death Knight Mastery", "Shaman": "Shaman Mastery",
+    "Caster": "Wand Mastery",
+}
+
+# (name, description, aura description); None leaves the stock text.
 TEXTS = {
-    SPELL_BIG_GAME_HUNTER: ("Big Game Hunter",
-        "Damage dealt versus Beasts increased by $s1%. Frost spells are $20596s1% less likely to hit you.", ""),
-    SPELL_ELUNES_LIGHT: ("Elune's Light",
-        "Calls down Elune's light, increasing your chance to critically hit with melee and ranged "
-        "attacks and spells by $s1% for $d.",
-        "Critical strike chance increased by $s1%."),
     SPELL_ESCAPE_ARTIST_IMMUNITY: ("Escape Artist", "",
         "Immune to immobilization and movement slowing effects."),
-    SPELL_EUREKA: ("Eureka!",
-        "A flash of gnomish genius makes your next 3 spells or abilities within $d cost $s3% less "
-        "and deal $s1% more damage or healing.",
-        "Spells and abilities cost $s3% less and deal $s1% more damage or healing."),
-    SPELL_EXPANSIVE_MIND_POWER: ("Expansive Mind", "", ""),
     SPELL_SHATTER_CURSE: ("Shatter Curse",
         "Shatters all curses on you and makes you immune to Curses for $d. Magical damage taken is "
         "reduced by $s2% for the duration.",
         "Immune to Curses. Magical damage taken reduced by $s2%."),
     SPELL_TOUCH_OF_THE_GRAVE: ("Touch of the Grave",
         f"Your weapon attacks have a {TOUCH_WEAPON_CHANCE}% chance and your harmful spells a "
-        f"{TOUCH_SPELL_CHANCE}% chance to drain the target, dealing Shadow damage equal to "
-        f"{TOUCH_POWER_PERCENT}% of your attack power or spell power, whichever is higher, and "
-        f"healing you for the same amount. The drain can't exceed {TOUCH_MAX_HEALTH_PERCENT}% of "
-        "your maximum health. Shadow spells are $20579s1% less likely to hit you.",
+        f"{TOUCH_SPELL_CHANCE}% chance to heal you for {TOUCH_HEAL_PERCENT}% of the damage they "
+        f"dealt, up to {TOUCH_MAX_HEALTH_PERCENT}% of your maximum health. Underwater breath lasts "
+        "$5227s1% longer than normal.",
         ""),
-    SPELL_TOUCH_OF_THE_GRAVE_DRAIN: ("Touch of the Grave", "", ""),
-    SPELL_PLAINSRUNNING: ("Plainsrunning",
-        f"Each second you keep moving increases your movement speed by 1%, up to "
-        f"{PLAINSRUNNING_MAX_STACKS}%. Stopping resets it. Nature spells are $20551s1% less likely "
-        "to hit you.",
-        ""),
-    SPELL_PLAINSRUNNING_SPEED: ("Plainsrunning", "",
-        "Movement speed increased by $s1% for each second spent moving."),
-    SPELL_CULTIVATION: ("Cultivation",
-        f"Grows a herb out of the ground in front of you, matched to your level. Anyone can gather "
-        f"it without Herbalism. It withers after {CULTIVATION_MINUTES} min.\n\nPassive: Herbalism "
-        "skill increased by $20552s1.",
-        ""),
+    SPELL_TOUCH_OF_THE_GRAVE_HEAL: ("Touch of the Grave", "", ""),
     SPELL_RAPID_REGENERATION: ("Rapid Regeneration",
         "Regenerates $s1% of your maximum health every $t1 sec for $d.",
         "Regenerating $s1% of maximum health every $t1 sec."),
 
-    SPELL_HUMAN_SWORD_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Sword or Mace"), None),
-    SPELL_HUMAN_MACE_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Mace"), None),
-    SPELL_DWARF_MACE_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Mace or Gun"), None),
-    SPELL_GUN_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="a Gun"), None),
-    SPELL_WISP_SPIRIT: (None,
-        "Transform into a wisp upon death, increasing speed by $20584s1%. You are harder to detect "
-        "while Shadowmelded or stealthed, and Nature spells are $20583s1% less likely to hit you.", None),
-    SPELL_ENGINEERING_SPEC: (None,
-        "Engineering skill increased by $s1. Arcane spells are $20592s1% less likely to hit you.", None),
-    SPELL_HARDINESS: (None,
-        "Duration of Stun effects reduced by an additional $s1%. Damage dealt by your pets increased "
-        "by $20575s1%.", None),
-    SPELL_REGENERATION: (None,
-        "Health regeneration rate increased by $s1%.  $s2% of total Health regeneration may continue "
-        "during combat. The duration of movement impairing effects is reduced by $58943s1%.", None),
-    SPELL_BEAST_SLAYING: (None,
-        "Damage dealt versus Beasts increased by $s1%. Your chance to critically hit with Bows and "
-        "Throwing Weapons is increased by $26290s1%.", None),
-    SPELL_ORC_AXE_SPEC: (None, WEAPON_SPEC.format(pct=WEAPON_CRIT_PERCENT, weapons="an Axe or Fist Weapon"), None),
+    SPELL_MASTERY_SPELL: ("Spell Mastery",
+        "Increases your chance to hit with spells by $s1% and your chance to critically hit with "
+        "spells by $s2%.", ""),
+    SPELL_MASTERY_FERAL: ("Feral Mastery",
+        "While in Cat Form, Bear Form or Dire Bear Form, increases your chance to hit by $s2% and "
+        "your chance to critically hit by $s1%.", ""),
+
+    SPELL_BATTLE_FURY: ("Battle Fury",
+        "Increases your attack power by $s1% for $d and generates $/10;s2 rage.",
+        "Attack power increased by $s1%."),
+    SPELL_CRUSADERS_ZEAL: ("Crusader's Zeal",
+        "Increases your attack power, spell power and healing by $s1% for $d.",
+        "Attack power, spell power and healing increased by $s1%."),
+    SPELL_PACK_FURY: ("Pack Fury",
+        "Increases your ranged attack speed and your pet's attack speed by $s1% for $d.",
+        "Attack speed increased by $s1%."),
+    SPELL_CUTTHROAT_RUSH: ("Cutthroat Rush",
+        "Increases your energy regeneration by $s1% for $d.",
+        "Energy regeneration increased by $s1%."),
+    SPELL_INNER_FERVOR: ("Inner Fervor",
+        "Increases your casting speed by $s1% for $d.",
+        "Casting speed increased by $s1%."),
+    SPELL_GRAVE_FURY: ("Grave Fury",
+        "Increases your attack power by $s1% for $d and generates $/10;s2 runic power.",
+        "Attack power increased by $s1%."),
+    SPELL_ANCESTRAL_FURY: ("Ancestral Fury",
+        "Increases your attack and casting speed by $s1% for $d.",
+        "Attack and casting speed increased by $s1%."),
+    SPELL_ARCANE_FERVOR: ("Arcane Fervor",
+        "Increases your spell power by $s1% for $d.",
+        "Spell power increased by $s1%."),
+    SPELL_FEL_FRENZY: ("Fel Frenzy",
+        "Increases your spell power and your demon's damage by $s1% for $d.",
+        "Spell power increased by $s1%."),
+    SPELL_WILD_INSTINCT: ("Wild Instinct",
+        f"Calls on your wild instincts for $d, depending on your form: Cat Form increases energy "
+        f"regeneration by $s2%, Bear Form and Dire Bear Form increase attack power by $s3% and "
+        f"generate {RAGE} rage, and any other form increases casting speed by $s1%.",
+        "Empowered by your wild instincts."),
+
     SPELL_STONEFORM: (None,
         "Removes all poison, disease and bleed effects, increases your armor by $65116s1% and "
         "reduces physical damage taken by $65116s2% for $65116d.", None),
     SPELL_STONEFORM_BUFF: (None, None, "Armor increased by $s1%. Physical damage taken reduced by $s2%."),
     SPELL_QUICKNESS: (None,
         "Reduces the chance that melee and ranged attackers will hit you by $s1% and increases "
-        "your movement speed by $s3%.", None),
+        "your movement speed by $s3%. You are harder to detect while Shadowmelded or stealthed, "
+        "and turn into a wisp upon death, increasing speed by $20584s1%.", None),
     SPELL_ESCAPE_ARTIST: (None,
         "Escape the effects of any immobilization or movement speed reduction effect, and become "
         "immune to them for $90102d.", None),
-    SPELL_EXPANSIVE_MIND: (None,
-        "Intellect increased by $s1%. Maximum mana, rage, energy and runic power increased by $s2%.", None),
-    SPELL_BLOOD_FURY_AP: (None,
-        f"Increases attack power and spell power by {BLOOD_FURY_PERCENT}%, or by $s1 attack power and $s3 "
-        "spell power if that's more. Lasts $d.",
-        "Attack power and spell power increased."),
-    SPELL_BLOOD_FURY_BOTH: (None,
-        f"Increases attack power and spell power by {BLOOD_FURY_PERCENT}%, or by $s1 attack power and $s2 "
-        "spell power if that's more. Lasts $d.",
-        "Attack power and spell power increased."),
-    SPELL_BLOOD_FURY_SP: (None,
-        f"Increases attack power and spell power by {BLOOD_FURY_PERCENT}%, or by $s1 attack power and $s2 "
-        "spell power if that's more. Lasts $d.",
-        "Attack power and spell power increased."),
-    SPELL_CANNIBALIZE: (None,
-        "When activated, regenerates $20578s1% of total health and mana every $20578t1 sec for "
-        "$20578d.  Only works on Humanoid or Undead corpses within $a1 yds.  Any movement, action, "
-        "or damage taken while Cannibalizing will cancel the effect.", None),
-    SPELL_CANNIBALIZE_HEAL: (None, None, "Regenerate $s1% of total health and mana every $t1 seconds."),
-    SPELL_ENDURANCE: (None, "Base Health increased by $s1%. Chance to hit with all attacks and spells "
-                            "increased by $s2%.", None),
+    SPELL_HARDINESS: (None, "Duration of Stun effects reduced by an additional $s1%.", None),
+    SPELL_ENDURANCE: (None,
+        "Base Health increased by $s1%. You gather herbs $20552s1% faster.", None),
+    SPELL_REGENERATION: (None,
+        "Health regeneration rate increased by $s1%.  $s2% of total Health regeneration may continue "
+        "during combat. The duration of movement impairing effects is reduced by $58943s1%.", None),
+    SPELL_ENGINEERING_SPEC: (None, "Engineering is $s1% faster.", None),
+    SPELL_GEMCUTTING: (None, "Jewelcrafting is $s1% faster.", None),
+    SPELL_ARCANE_AFFINITY: (None, "Enchanting is $s1% faster.", None),
+    SPELL_CULTIVATION: (None, "Herb gathering is $s1% faster.", None),
 }
+
+for key, spell_id in SPELL_MASTERY.items():
+    TEXTS[spell_id] = (MASTERY_NAMES[key],
+        f"Increases your chance to hit with {weapon_list(WEAPONS[key])} by $s2% and your chance to "
+        "critically hit with them by $s1%.", "")
+
+RACIAL_SUBTEXT = {SPELL_TOUCH_OF_THE_GRAVE: "Racial Passive", SPELL_SHATTER_CURSE: "Racial",
+                  SPELL_RAPID_REGENERATION: "Racial"}
+PASSIVE_SUBTEXT = set(SPELL_MASTERY.values()) | {SPELL_MASTERY_SPELL, SPELL_MASTERY_FERAL}
 
 
 # --- DBC helpers ----------------------------------------------------------------------------
@@ -447,23 +483,49 @@ def copy(rows, template, spell_id, icon=None, visual=None):
     return row
 
 
+def set_effect(row, e, effect, amount, misc=0, target=TARGET_UNIT_CASTER):
+    """Effect e becomes a non-aura effect worth amount (DBC base points are amount - 1)."""
+    clear_effect(row, e)
+    row[F_EFFECT + e] = effect
+    row[F_EFFECT_BASE_POINTS + e] = i32(amount - 1)
+    row[F_EFFECT_DIE_SIDES + e] = 1
+    row[F_EFFECT_MISC_VALUE + e] = i32(misc)
+    row[F_EFFECT_TARGET_A + e] = target
+
+
+def set_cooldown(rows, spell_id, effects):
+    """A class cooldown: Blood Fury's flags (instant, off the global cooldown), 2 min, 15 sec.
+    effects: (aura, amount, misc, target) per effect; aura None means an energize instead."""
+    icon, visual = LOOKS[spell_id]
+    s = copy(rows, TEMPLATE_COOLDOWN, spell_id, icon=icon, visual=visual)
+    s[F_RECOVERY_TIME] = COOLDOWN_MS
+    s[F_DURATION_INDEX] = DURATION_15_SEC
+    s[F_EQUIPPED_ITEM_CLASS] = i32(-1)
+    s[F_EQUIPPED_ITEM_SUBCLASS_MASK] = s[F_EQUIPPED_ITEM_INVENTORY_TYPE_MASK] = 0
+    for e, (aura, amount, misc, target) in enumerate(effects):
+        if aura is None:
+            set_effect(s, e, SPELL_EFFECT_ENERGIZE, amount, misc=misc, target=target)
+        else:
+            set_aura(s, e, aura, amount, misc=misc)
+            s[F_EFFECT_TARGET_A + e] = target
+    return s
+
+
+def set_mastery(rows, spell_id, item_class=-1, subclass_mask=0, stances=0):
+    icon, _ = LOOKS[spell_id]
+    s = copy(rows, TEMPLATE_RACIAL_PASSIVE, spell_id, icon=icon)
+    s[F_EQUIPPED_ITEM_CLASS] = i32(item_class)
+    s[F_EQUIPPED_ITEM_SUBCLASS_MASK] = subclass_mask
+    s[F_EQUIPPED_ITEM_INVENTORY_TYPE_MASK] = 0
+    s[F_STANCES] = stances
+    return s
+
+
 # --- The new spells -------------------------------------------------------------------------
 
 def new_spells(rows):
     spells = []
-
-    # Dwarf passive: Beast Slaying's copy.
-    s = copy(rows, TEMPLATE_RACIAL_PASSIVE, SPELL_BIG_GAME_HUNTER, icon=ICON_TRACK_BEASTS)
-    set_aura(s, 0, 168, 5, misc=1)  # SPELL_AURA_MOD_DAMAGE_DONE_VERSUS, creature type mask: Beast
-    spells.append(s)
-
-    # Night Elf active: +10% crit for 15 sec, 2 min cooldown.
-    s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_ELUNES_LIGHT, icon=ICON_ELUNES_BLESSING,
-             visual=VISUAL_ELUNES_BLESSING)
-    s[F_RECOVERY_TIME] = 120000
-    s[F_DURATION_INDEX] = DURATION_15_SEC
-    set_aura(s, 0, AURA_MOD_CRIT_PCT, 10)
-    spells.append(s)
+    C = TARGET_UNIT_CASTER
 
     # Gnome: Escape Artist triggers this, 3 sec of root and snare immunity.
     s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_ESCAPE_ARTIST_IMMUNITY, icon=find(rows, SPELL_ESCAPE_ARTIST)[F_SPELL_ICON],
@@ -475,25 +537,6 @@ def new_spells(rows):
     set_aura(s, 1, AURA_MECHANIC_IMMUNITY, 1, misc=MECHANIC_SNARE)
     spells.append(s)
 
-    # Gnome active: next 3 spells or abilities cost 50% less and do 30% more, 20 sec, 2 min.
-    s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_EUREKA, icon=ICON_ENGINEERING, visual=VISUAL_ARCANE_POWER)
-    s[F_RECOVERY_TIME] = 120000
-    s[F_DURATION_INDEX] = DURATION_20_SEC
-    s[F_PROC_CHARGES] = 3
-    set_aura(s, 0, AURA_MOD_DAMAGE_PERCENT_DONE, EUREKA_DAMAGE_PERCENT, misc=SCHOOL_MASK_ALL)
-    set_aura(s, 1, AURA_MOD_HEALING_DONE_PERCENT, EUREKA_DAMAGE_PERCENT)
-    set_aura(s, 2, AURA_MOD_POWER_COST_SCHOOL_PCT, -EUREKA_COST_PERCENT, misc=SCHOOL_MASK_ALL)
-    spells.append(s)
-
-    # Gnome passive, hidden: the rage, energy and runic power half of Expansive Mind (the stock
-    # spell carries the mana half; a spell has only three effects).
-    s = copy(rows, TEMPLATE_RACIAL_PASSIVE, SPELL_EXPANSIVE_MIND_POWER, icon=find(rows, SPELL_EXPANSIVE_MIND)[F_SPELL_ICON])
-    s[F_ATTRIBUTES] |= SPELL_ATTR0_DO_NOT_DISPLAY
-    set_aura(s, 0, AURA_MOD_INCREASE_ENERGY_PERCENT, EXPANSIVE_MIND_POWER_PERCENT, misc=POWER_RAGE)
-    set_aura(s, 1, AURA_MOD_INCREASE_ENERGY_PERCENT, EXPANSIVE_MIND_POWER_PERCENT, misc=POWER_ENERGY)
-    set_aura(s, 2, AURA_MOD_INCREASE_ENERGY_PERCENT, EXPANSIVE_MIND_POWER_PERCENT, misc=POWER_RUNIC_POWER)
-    spells.append(s)
-
     # Orc active, Stoneform's twin: curse immunity (which also removes curses you have, like
     # Stoneform's poison and disease immunity) and 10% less magic damage taken for 8 sec.
     s = copy(rows, TEMPLATE_STONEFORM, SPELL_SHATTER_CURSE, icon=ICON_REMOVE_CURSE, visual=VISUAL_BLOOD_FURY)
@@ -502,47 +545,25 @@ def new_spells(rows):
     set_aura(s, 1, AURA_MOD_DAMAGE_PERCENT_TAKEN, -10, misc=SCHOOL_MASK_MAGIC)
     spells.append(s)
 
-    # Undead passive: the server's script rolls the chance and casts the drain.
+    # Undead passive: the server's script rolls the chance and casts the heal.
     s = copy(rows, TEMPLATE_RACIAL_PASSIVE, SPELL_TOUCH_OF_THE_GRAVE, icon=ICON_DRAIN_LIFE)
     set_aura(s, 0, AURA_DUMMY, 0)
     spells.append(s)
 
-    # The drain: Shadow damage that heals the caster for 100% of it. The server sets the amount;
-    # it always hits, can't crit, ignores the caster's damage bonuses and triggers no procs.
+    # The heal, with the shadowy look of a health leech. The server sets the amount; it can't
+    # crit, ignores the caster's healing bonuses and triggers no procs.
     s = list(find(rows, TEMPLATE_LIFESTEAL))
-    s[F_ID] = SPELL_TOUCH_OF_THE_GRAVE_DRAIN
+    s[F_ID] = SPELL_TOUCH_OF_THE_GRAVE_HEAL
     s[F_SPELL_ICON] = ICON_DRAIN_LIFE
     s[F_MAX_LEVEL] = 0
     s[F_BASE_LEVEL] = s[F_SPELL_LEVEL] = 1
+    s[F_DMG_CLASS] = 0
     s[F_ATTRIBUTES_EX2] |= SPELL_ATTR2_CANT_CRIT
-    s[F_ATTRIBUTES_EX3] |= SPELL_ATTR3_ALWAYS_HIT | SPELL_ATTR3_IGNORE_CASTER_MODIFIERS | SPELL_ATTR3_SUPPRESS_CASTER_PROCS
-    s[F_EFFECT_BASE_POINTS] = 0
+    s[F_ATTRIBUTES_EX3] |= SPELL_ATTR3_IGNORE_CASTER_MODIFIERS | SPELL_ATTR3_SUPPRESS_CASTER_PROCS
+    clear_all_effects(s)
+    set_effect(s, 0, SPELL_EFFECT_HEAL, 1)
     s[F_EFFECT_DIE_SIDES] = 0
     s[F_EFFECT_MULTIPLE_VALUE] = f32(1.0)
-    s[F_EFFECT_BONUS] = f32(0.0)
-    spells.append(s)
-
-    # Tauren passive: the server's script checks every second whether you're moving.
-    s = copy(rows, TEMPLATE_RACIAL_PASSIVE, SPELL_PLAINSRUNNING, icon=ICON_DASH)
-    set_aura(s, 0, AURA_PERIODIC_DUMMY, 0, amplitude=1000)
-    spells.append(s)
-
-    # Its buff: 1% speed per stack, up to 5 stacks, until you stop.
-    s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_PLAINSRUNNING_SPEED, icon=ICON_DASH, visual=0)
-    s[F_RECOVERY_TIME] = 0
-    s[F_START_RECOVERY_CATEGORY] = s[F_START_RECOVERY_TIME] = 0
-    s[F_DURATION_INDEX] = DURATION_INFINITE
-    s[F_STACK_AMOUNT] = PLAINSRUNNING_MAX_STACKS
-    set_aura(s, 0, AURA_MOD_SPEED_ALWAYS, 1)
-    spells.append(s)
-
-    # Tauren active: the server's script picks a herb for your level and grows it. 10 min.
-    s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_CULTIVATION, icon=ICON_CULTIVATION, visual=VISUAL_REJUVENATION)
-    s[F_RECOVERY_TIME] = 600000
-    s[F_DURATION_INDEX] = 0
-    s[F_ATTRIBUTES] |= SPELL_ATTR0_ONLY_OUTDOORS
-    s[F_EFFECT] = SPELL_EFFECT_DUMMY
-    s[F_EFFECT_TARGET_A] = TARGET_UNIT_CASTER
     spells.append(s)
 
     # Troll active: 5% of max health every 2 sec for 20 sec (50% in all), 3 min cooldown. Unlike
@@ -553,27 +574,67 @@ def new_spells(rows):
     set_aura(s, 0, AURA_OBS_MOD_HEALTH, 5, amplitude=2000)
     spells.append(s)
 
+    # Class masteries. Physical: crit (effect 0) and hit (effect 1) with the class's weapons; the
+    # crit only counts for the hand doing the attack. The server sets the weapons from its config.
+    for key, spell_id in SPELL_MASTERY.items():
+        mask = sum(1 << subclass for subclass in WEAPONS[key])
+        s = set_mastery(rows, spell_id, item_class=ITEM_CLASS_WEAPON, subclass_mask=mask)
+        set_aura(s, 0, AURA_MOD_WEAPON_CRIT_PERCENT, MASTERY_CRIT_PERCENT)
+        set_aura(s, 1, AURA_MOD_HIT_CHANCE, MASTERY_HIT_PERCENT)
+        spells.append(s)
+
+    s = set_mastery(rows, SPELL_MASTERY_SPELL)
+    set_aura(s, 0, AURA_MOD_SPELL_HIT_CHANCE, MASTERY_SPELL_HIT_PERCENT, misc=SCHOOL_MASK_ALL)
+    set_aura(s, 1, AURA_MOD_SPELL_CRIT_CHANCE, MASTERY_SPELL_CRIT_PERCENT)
+    spells.append(s)
+
+    # Druids in Cat and Bear Form, whatever they hold: the core puts form passives up and takes
+    # them down as the druid shifts.
+    s = set_mastery(rows, SPELL_MASTERY_FERAL, stances=STANCES_CAT_AND_BEAR)
+    set_aura(s, 0, AURA_MOD_WEAPON_CRIT_PERCENT, MASTERY_CRIT_PERCENT)
+    set_aura(s, 1, AURA_MOD_HIT_CHANCE, MASTERY_HIT_PERCENT)
+    spells.append(s)
+
+    # Class cooldowns. Spell power and healing amounts are percents; the server's script turns
+    # them into that share of the caster's own.
+    P = TARGET_UNIT_PET
+    spells.append(set_cooldown(rows, SPELL_BATTLE_FURY, [
+        (AURA_MOD_ATTACK_POWER_PCT, POWER_PERCENT, 0, C),
+        (None, RAGE * 10, POWER_RAGE, C)]))
+    spells.append(set_cooldown(rows, SPELL_CRUSADERS_ZEAL, [
+        (AURA_MOD_ATTACK_POWER_PCT, POWER_PERCENT, 0, C),
+        (AURA_MOD_DAMAGE_DONE, POWER_PERCENT, SCHOOL_MASK_MAGIC, C),
+        (AURA_MOD_HEALING_DONE, POWER_PERCENT, SCHOOL_MASK_ALL, C)]))
+    spells.append(set_cooldown(rows, SPELL_PACK_FURY, [
+        (AURA_MOD_RANGED_HASTE, HASTE_PERCENT, 0, C),
+        (AURA_MOD_MELEE_HASTE, HASTE_PERCENT, 0, P)]))
+    spells.append(set_cooldown(rows, SPELL_CUTTHROAT_RUSH, [
+        (AURA_MOD_POWER_REGEN_PERCENT, ENERGY_REGEN_PERCENT, POWER_ENERGY, C)]))
+    spells.append(set_cooldown(rows, SPELL_INNER_FERVOR, [
+        (AURA_MOD_CASTING_SPEED, HASTE_PERCENT, 0, C)]))
+    spells.append(set_cooldown(rows, SPELL_GRAVE_FURY, [
+        (AURA_MOD_ATTACK_POWER_PCT, POWER_PERCENT, 0, C),
+        (None, RUNIC_POWER * 10, POWER_RUNIC_POWER, C)]))
+    spells.append(set_cooldown(rows, SPELL_ANCESTRAL_FURY, [
+        (AURA_MOD_ATTACK_AND_CAST_SPEED, HASTE_PERCENT, 0, C)]))
+    spells.append(set_cooldown(rows, SPELL_ARCANE_FERVOR, [
+        (AURA_MOD_DAMAGE_DONE, POWER_PERCENT, SCHOOL_MASK_MAGIC, C)]))
+    spells.append(set_cooldown(rows, SPELL_FEL_FRENZY, [
+        (AURA_MOD_DAMAGE_DONE, POWER_PERCENT, SCHOOL_MASK_MAGIC, C),
+        (AURA_MOD_DAMAGE_PERCENT_DONE, POWER_PERCENT, SCHOOL_MASK_ALL, P)]))
+    # Only the effect for the druid's form counts (the server zeroes the others).
+    spells.append(set_cooldown(rows, SPELL_WILD_INSTINCT, [
+        (AURA_MOD_CASTING_SPEED, HASTE_PERCENT, 0, C),
+        (AURA_MOD_POWER_REGEN_PERCENT, ENERGY_REGEN_PERCENT, POWER_ENERGY, C),
+        (AURA_MOD_ATTACK_POWER_PCT, POWER_PERCENT, 0, C)]))
+
     return spells
 
 
 def patch_existing(rows):
-    """The stock racials the server changes, so their tooltips (and $s values) match."""
-    for spell_id in (SPELL_HUMAN_SWORD_SPEC, SPELL_HUMAN_MACE_SPEC, SPELL_DWARF_MACE_SPEC, SPELL_GUN_SPEC, SPELL_ORC_AXE_SPEC):
-        row = find(rows, spell_id)
-        set_aura(row, 0, AURA_MOD_WEAPON_CRIT_PERCENT, WEAPON_CRIT_PERCENT)
-        set_aura(row, 1, AURA_MOD_SPELL_CRIT_CHANCE, WEAPON_CRIT_PERCENT)
-
-    find(rows, SPELL_HUMAN_SPIRIT)[F_EFFECT_BASE_POINTS] = i32(HUMAN_SPIRIT_PERCENT - 1)
-    find(rows, SPELL_PERCEPTION)[F_RECOVERY_TIME] = PERCEPTION_COOLDOWN_MS
-
+    """The kept stock racials the server changes, so their tooltips (and $s values) match."""
     for spell_id in FOLDED:
         find(rows, spell_id)[F_ATTRIBUTES] |= SPELL_ATTR0_DO_NOT_DISPLAY
-
-    # Diplomacy: still learned (the core teaches racial passives at every login), but it gives
-    # 0% and isn't shown in the spellbook.
-    row = find(rows, SPELL_DIPLOMACY)
-    row[F_ATTRIBUTES] |= SPELL_ATTR0_DO_NOT_DISPLAY
-    row[F_EFFECT_BASE_POINTS] = i32(-1)
 
     set_aura(find(rows, SPELL_STONEFORM_BUFF), 1, AURA_MOD_DAMAGE_PERCENT_TAKEN,
              -STONEFORM_PHYSICAL_REDUCTION, misc=SCHOOL_MASK_PHYSICAL)
@@ -586,27 +647,17 @@ def patch_existing(rows):
     row[F_EFFECT_TARGET_A + 1] = TARGET_UNIT_CASTER
     row[F_EFFECT_TRIGGER_SPELL + 1] = SPELL_ESCAPE_ARTIST_IMMUNITY
 
-    set_aura(find(rows, SPELL_EXPANSIVE_MIND), 1, AURA_MOD_INCREASE_ENERGY_PERCENT,
-             EXPANSIVE_MIND_POWER_PERCENT, misc=POWER_MANA)
-
-    # Blood Fury: every version gives attack power and spell power, with the stock amounts
-    # (6 + 4 per level attack power, 5 + 2 per level spell power) as the floor.
-    row = find(rows, SPELL_BLOOD_FURY_AP)
-    set_aura(row, 2, AURA_MOD_DAMAGE_DONE, 5, misc=SCHOOL_MASK_MAGIC, per_level=2.0)
-    row = find(rows, SPELL_BLOOD_FURY_BOTH)
-    set_aura(row, 2, AURA_MOD_HEALING_DONE, 5, misc=SCHOOL_MASK_ALL, per_level=2.0)
-    row = find(rows, SPELL_BLOOD_FURY_SP)
-    set_aura(row, 0, AURA_MOD_ATTACK_POWER, 6, per_level=4.0)
-    set_aura(row, 2, AURA_MOD_RANGED_ATTACK_POWER, 6, per_level=4.0)
-
     find(rows, SPELL_HARDINESS)[F_EFFECT_BASE_POINTS] = i32(-HARDINESS_PERCENT - 1)
 
-    set_aura(find(rows, SPELL_CANNIBALIZE_HEAL), 1, AURA_OBS_MOD_POWER, CANNIBALIZE_MANA_PERCENT,
-             misc=POWER_MANA, amplitude=2000)
-
+    # Endurance is stock again: the previous version gave it hit in effects 1 and 2.
     row = find(rows, SPELL_ENDURANCE)
-    set_aura(row, 1, AURA_MOD_HIT_CHANCE, ENDURANCE_HIT_PERCENT)
-    set_aura(row, 2, AURA_MOD_SPELL_HIT_CHANCE, ENDURANCE_HIT_PERCENT, misc=SCHOOL_MASK_ALL)
+    clear_effect(row, 1)
+    clear_effect(row, 2)
+
+    # The profession racials: the server turns the skill bonus into a cast time cut. The client
+    # only needs the number for the tooltips.
+    for spell_id in PROFESSION_RACIALS:
+        set_aura(find(rows, spell_id), 0, AURA_DUMMY, PROFESSION_SPEED_PERCENT)
 
 
 def set_texts(row, strings):
@@ -626,14 +677,14 @@ def set_texts(row, strings):
 
 
 def set_subtext(row, strings):
-    """New racials read "Racial" or "Racial Passive" under their name, like the stock ones."""
+    """New racials read "Racial" or "Racial Passive" under their name, like the stock ones, and
+    the masteries "Passive"."""
     for i in range(16):
         row[F_NAME_SUBTEXT + i] = 0
-    if row[F_ID] in (SPELL_BIG_GAME_HUNTER, SPELL_TOUCH_OF_THE_GRAVE, SPELL_PLAINSRUNNING):
-        row[F_NAME_SUBTEXT] = add_string(strings, "Racial Passive")
-    elif row[F_ID] in (SPELL_ELUNES_LIGHT, SPELL_EUREKA, SPELL_SHATTER_CURSE, SPELL_CULTIVATION,
-                       SPELL_RAPID_REGENERATION):
-        row[F_NAME_SUBTEXT] = add_string(strings, "Racial")
+    if row[F_ID] in RACIAL_SUBTEXT:
+        row[F_NAME_SUBTEXT] = add_string(strings, RACIAL_SUBTEXT[row[F_ID]])
+    elif row[F_ID] in PASSIVE_SUBTEXT:
+        row[F_NAME_SUBTEXT] = add_string(strings, "Passive")
 
 
 def build_new_spells(rows, strings):

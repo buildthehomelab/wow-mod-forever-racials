@@ -108,6 +108,15 @@ cooldown, Rapid Regeneration's 20 sec, and Plainsrunning's 1% per second up to 5
 WoW Forever's other Gnome change, more reliable engineering devices, isn't included: the failure
 chances are hard-coded in the core's item scripts, one per device.
 
+## Requirements
+
+- [AzerothCore](https://github.com/azerothcore/azerothcore-wotlk) `master` (WotLK 3.3.5a)
+- A WoW 3.3.5a (12340) client
+- The client patch built by `tools/build_patch.py` for the new spells (see "Client patch"). Without it players can't see or cast them
+- To build the patch: Python 3 and StormLib (`libstorm`)
+- The SQL in `data/sql/db-world` is applied to the world database on the next start
+- Optional: [mod-individual-progression](https://github.com/ZhengPeiRu21/mod-individual-progression), so Cultivation follows its Outland and Northrend unlocks
+
 ## Install
 
 Clone it into your AzerothCore `modules` folder **as `mod-forever-racials`**, without the repo's
@@ -196,6 +205,23 @@ isn't in `/usr/local/lib`.
 - **Cultivation's herbs** are copies of 40 herb nodes (`gameobject_template` 9500700-9500739)
   without the Herbalism lock, with the original herbs' loot.
 
+## Troubleshooting
+
+- **A new racial spell is missing or can't be cast.** The client patch is missing. Build it with
+  `tools/build_patch.py` and ship it, and have players delete their `Cache/` folder after getting
+  it.
+- **Diplomacy still shows in a human's spellbook.** Without the client patch it stays visible but
+  gives 0% reputation.
+- **A race or crit setting doesn't change.** `ForeverRacials.<Race>.Enable` and
+  `ForeverRacials.WeaponSpecialization.CritPercent` are read at startup only. Restart the
+  worldserver; `.reload config` is not enough.
+
+## Credits
+
+Author: [buildthehomelab](https://github.com/buildthehomelab)
+
+The design follows the WoW Forever private server ruleset. The code is original.
+
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).

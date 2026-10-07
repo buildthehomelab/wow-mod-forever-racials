@@ -105,11 +105,12 @@ list is a setting.
 it up and takes it down as the druid shifts.
 
 **Spell power cooldowns** (Crusader's Zeal, Arcane Fervor, Fel Frenzy) give a share of your own
-spell power and healing power when you use them. **Wild Instinct** counts the form you're in when
+spell power and healing power when you use them. **Pack Fury** and **Fel Frenzy** buff your pet
+only if you have one out; without a pet you still get your half. **Wild Instinct** counts the form you're in when
 you use it; shifting afterwards doesn't change it.
 
 **Profession speed** is a cut in cast time, 25% for every spell of that profession (crafting,
-Herb Gathering, Disenchant, Prospecting). It stacks with mod-gathering-tools' tool bonus.
+Herb Gathering, Disenchant, Prospecting).
 
 **Touch of the Grave.** Damaging weapon attacks (melee, ranged, wands, weapon abilities) have a 5%
 chance and harmful spells a 10% chance. Damage over time never procs it, and nothing rolls while
@@ -120,7 +121,8 @@ area spells).
 **Rapid Regeneration.** 5% of max health every 2 sec for 20 sec. Unlike Cannibalize, moving,
 fighting or taking damage doesn't stop it.
 
-**Removed racials** are taken off characters at login. The core normally teaches racials again at
+**Removed racials** are taken off characters at login, and every character's spells are checked
+again every 10 seconds (playerbots' randomizer clears a random bot's spells while it's online). The core normally teaches racials again at
 every login, from the race's skill line; the module takes the removed ones off that list in
 memory, so they stay gone. Switch the race half off and the core teaches them all back.
 
@@ -153,9 +155,10 @@ character.
 | `ForeverRacials.TouchOfTheGrave.HealPercent` | `25` | The heal, as a share of the hit's damage. |
 | `ForeverRacials.TouchOfTheGrave.MaxHealthPercent` | `5` | Cap, as a share of your own max health. |
 | `ForeverRacials.TouchOfTheGrave.Cooldown` | `3000` | Minimum milliseconds between heals. `0` for none. |
+| `ForeverRacials.SyncInterval` | `10000` | Milliseconds between checks that online characters have the right spells. `0` checks at login only. |
 
-The startup-only settings change spells when the server starts. Touch of the Grave's settings can
-be reloaded.
+The startup-only settings change spells when the server starts. Touch of the Grave's settings and
+the sync interval can be reloaded.
 
 If you change a setting the tooltips mention (or a weapon list) and use the client patch, change
 the matching value at the top of `tools/build_patch.py` and rebuild the patch.
@@ -181,7 +184,7 @@ AzerothCore never runs the `uninstall` folder by itself; it only runs the module
 ## Client patch
 
 `tools/build_patch.py` changes the client's Spell.dbc: it adds the new spells (90102-90111,
-90140-90159), updates the kept racials so their tooltips match, and hides the folded racials from
+90140-90161), updates the kept racials so their tooltips match, and hides the folded racials from
 the spellbook. Only the newest client patch's Spell.dbc is used, so start from the patch that
 already ships one (patch-P on this realm) and the script keeps its other changes:
 
@@ -221,7 +224,7 @@ inside patch-P, so players on the stock Wow.exe aren't affected.
 
 ## How it works
 
-- **New spells** (90102-90111, 90140-90159) are rows in `spell_dbc` for the server and in
+- **New spells** (90102-90111, 90140-90161) are rows in `spell_dbc` for the server and in
   patch-P's Spell.dbc for the client, built from stock spells for their flags, icons and visuals
   (Beast Slaying for passives, Blood Fury for the class cooldowns).
 - **Kept stock racials** are changed in memory when the server starts, like the core's own spell
@@ -232,7 +235,8 @@ inside patch-P, so players on the stock Wow.exe aren't affected.
   reaches no spell (empty class mask, unused spell family); a GlobalScript lets it reach the
   spells of its profession only.
 - **Scripts**: Touch of the Grave's chance and heal, the spell power cooldowns' share of your
-  spell power, and Wild Instinct's form check.
+  spell power, Wild Instinct's form check, and the pet halves of Pack Fury and Fel Frenzy
+  (90160, 90161), cast only when there's a pet so the cooldown works without one.
 
 ## License
 

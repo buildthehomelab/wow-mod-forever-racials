@@ -13,7 +13,8 @@ server). Start from that patch so its other spell changes are kept:
 
 What it changes:
 
-- The class spells: a mastery for every class (90140-90148) and a class cooldown (90150-90159).
+- The class spells: a mastery for every class (90140-90148) and a class cooldown (90150-90159),
+  plus the pet halves of Pack Fury and Fel Frenzy (90160, 90161).
 - The racials that are new spells: Escape Artist's immunity (90102), Shatter Curse (90105),
   Touch of the Grave and its heal (90106, 90107) and Rapid Regeneration (90111). The server gets
   the same rows from spell_dbc.
@@ -105,6 +106,8 @@ SPELL_ANCESTRAL_FURY = 90156
 SPELL_ARCANE_FERVOR = 90157
 SPELL_FEL_FRENZY = 90158
 SPELL_WILD_INSTINCT = 90159
+SPELL_PACK_FURY_PET = 90160     # cast by the server only when there's a pet
+SPELL_FEL_FRENZY_PET = 90161
 
 # Kept stock racials the module changes.
 SPELL_STONEFORM = 20594
@@ -136,6 +139,9 @@ DURATION_8_SEC = 31
 DURATION_15_SEC = 8
 DURATION_20_SEC = 18
 
+# SpellRange.dbc
+RANGE_100_YARDS = 6
+
 # --- Spell.dbc layout (3.3.5a, build 12340) -------------------------------------------------
 FIELDS = 234
 F_ID = 0
@@ -150,6 +156,7 @@ F_MAX_LEVEL = 37
 F_BASE_LEVEL = 38
 F_SPELL_LEVEL = 39
 F_DURATION_INDEX = 40
+F_RANGE_INDEX = 46
 F_EQUIPPED_ITEM_CLASS = 68
 F_EQUIPPED_ITEM_SUBCLASS_MASK = 69
 F_EQUIPPED_ITEM_INVENTORY_TYPE_MASK = 70
@@ -325,7 +332,8 @@ TEXTS = {
         "Attack power, spell power and healing increased by $s1%."),
     SPELL_PACK_FURY: ("Pack Fury",
         "Increases your ranged attack speed and your pet's attack speed by $s1% for $d.",
-        "Attack speed increased by $s1%."),
+        "Ranged attack speed increased by $s1%."),
+    SPELL_PACK_FURY_PET: ("Pack Fury", "", "Attack speed increased by $s1%."),
     SPELL_CUTTHROAT_RUSH: ("Cutthroat Rush",
         "Increases your energy regeneration by $s1% for $d.",
         "Energy regeneration increased by $s1%."),
@@ -344,6 +352,7 @@ TEXTS = {
     SPELL_FEL_FRENZY: ("Fel Frenzy",
         "Increases your spell power and your demon's damage by $s1% for $d.",
         "Spell power increased by $s1%."),
+    SPELL_FEL_FRENZY_PET: ("Fel Frenzy", "", "Damage increased by $s1%."),
     SPELL_WILD_INSTINCT: ("Wild Instinct",
         f"Calls on your wild instincts for $d, depending on your form: Cat Form increases energy "
         f"regeneration by $s2%, Bear Form and Dire Bear Form increase attack power by $s3% and "
@@ -511,6 +520,20 @@ def set_cooldown(rows, spell_id, effects):
     return s
 
 
+def set_pet_buff(rows, spell_id, parent_id, aura, amount, misc=0):
+    """The pet's half of a class cooldown: the same look, no cooldown of its own, 15 sec."""
+    icon, visual = LOOKS[parent_id]
+    s = copy(rows, TEMPLATE_COOLDOWN, spell_id, icon=icon, visual=visual)
+    s[F_RECOVERY_TIME] = 0
+    s[F_DURATION_INDEX] = DURATION_15_SEC
+    s[F_EQUIPPED_ITEM_CLASS] = i32(-1)
+    s[F_EQUIPPED_ITEM_SUBCLASS_MASK] = s[F_EQUIPPED_ITEM_INVENTORY_TYPE_MASK] = 0
+    s[F_RANGE_INDEX] = RANGE_100_YARDS  # like Bestial Wrath and Demonic Empowerment
+    set_aura(s, 0, aura, amount, misc=misc)
+    s[F_EFFECT_TARGET_A] = TARGET_UNIT_PET
+    return s
+
+
 def set_mastery(rows, spell_id, item_class=-1, subclass_mask=0, stances=0):
     icon, _ = LOOKS[spell_id]
     s = copy(rows, TEMPLATE_RACIAL_PASSIVE, spell_id, icon=icon)
@@ -597,7 +620,6 @@ def new_spells(rows):
 
     # Class cooldowns. Spell power and healing amounts are percents; the server's script turns
     # them into that share of the caster's own.
-    P = TARGET_UNIT_PET
     spells.append(set_cooldown(rows, SPELL_BATTLE_FURY, [
         (AURA_MOD_ATTACK_POWER_PCT, POWER_PERCENT, 0, C),
         (None, RAGE * 10, POWER_RAGE, C)]))
@@ -605,9 +627,11 @@ def new_spells(rows):
         (AURA_MOD_ATTACK_POWER_PCT, POWER_PERCENT, 0, C),
         (AURA_MOD_DAMAGE_DONE, POWER_PERCENT, SCHOOL_MASK_MAGIC, C),
         (AURA_MOD_HEALING_DONE, POWER_PERCENT, SCHOOL_MASK_ALL, C)]))
+    # The pet halves are spells of their own, cast by the server's script only when there's a
+    # pet: an effect aimed at the pet on the main spell would make it fail without one.
     spells.append(set_cooldown(rows, SPELL_PACK_FURY, [
-        (AURA_MOD_RANGED_HASTE, HASTE_PERCENT, 0, C),
-        (AURA_MOD_MELEE_HASTE, HASTE_PERCENT, 0, P)]))
+        (AURA_MOD_RANGED_HASTE, HASTE_PERCENT, 0, C)]))
+    spells.append(set_pet_buff(rows, SPELL_PACK_FURY_PET, SPELL_PACK_FURY, AURA_MOD_MELEE_HASTE, HASTE_PERCENT))
     spells.append(set_cooldown(rows, SPELL_CUTTHROAT_RUSH, [
         (AURA_MOD_POWER_REGEN_PERCENT, ENERGY_REGEN_PERCENT, POWER_ENERGY, C)]))
     spells.append(set_cooldown(rows, SPELL_INNER_FERVOR, [
@@ -620,8 +644,9 @@ def new_spells(rows):
     spells.append(set_cooldown(rows, SPELL_ARCANE_FERVOR, [
         (AURA_MOD_DAMAGE_DONE, POWER_PERCENT, SCHOOL_MASK_MAGIC, C)]))
     spells.append(set_cooldown(rows, SPELL_FEL_FRENZY, [
-        (AURA_MOD_DAMAGE_DONE, POWER_PERCENT, SCHOOL_MASK_MAGIC, C),
-        (AURA_MOD_DAMAGE_PERCENT_DONE, POWER_PERCENT, SCHOOL_MASK_ALL, P)]))
+        (AURA_MOD_DAMAGE_DONE, POWER_PERCENT, SCHOOL_MASK_MAGIC, C)]))
+    spells.append(set_pet_buff(rows, SPELL_FEL_FRENZY_PET, SPELL_FEL_FRENZY, AURA_MOD_DAMAGE_PERCENT_DONE, POWER_PERCENT,
+                               misc=SCHOOL_MASK_ALL))
     # Only the effect for the druid's form counts (the server zeroes the others).
     spells.append(set_cooldown(rows, SPELL_WILD_INSTINCT, [
         (AURA_MOD_CASTING_SPEED, HASTE_PERCENT, 0, C),

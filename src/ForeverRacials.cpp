@@ -37,6 +37,7 @@
 
 #include "Config.h"
 #include "DBCStores.h"
+#include "DataMap.h"
 #include "ItemTemplate.h"
 #include "Log.h"
 #include "Pet.h"
@@ -91,6 +92,8 @@ namespace
     constexpr uint32 SPELL_ARCANE_FERVOR = 90157;     // mage
     constexpr uint32 SPELL_FEL_FRENZY = 90158;        // warlock
     constexpr uint32 SPELL_WILD_INSTINCT = 90159;     // druid
+    constexpr uint32 SPELL_PACK_FURY_PET = 90160;     // Pack Fury's half on the pet
+    constexpr uint32 SPELL_FEL_FRENZY_PET = 90161;    // Fel Frenzy's half on the demon
 
     // The previous version's spells, taken off every character at login. 20600 is the old active
     // Perception, which nothing else in 3.3.5 teaches (Humans have the passive one, 58985).
@@ -157,6 +160,12 @@ namespace
         { RACE_ORC, SPELL_SHATTER_CURSE },
         { RACE_UNDEAD_PLAYER, SPELL_TOUCH_OF_THE_GRAVE },
         { RACE_TROLL, SPELL_RAPID_REGENERATION },
+    };
+
+    // How often each online character's spells are checked again (see the PlayerScript).
+    struct SyncTimer : public DataMap::Base
+    {
+        uint32 timer = 0;
     };
 
     struct ClassSpell
@@ -253,6 +262,8 @@ namespace
         float touchHealPercent = 25.0f;
         float touchMaxHealthPercent = 5.0f;
         uint32 touchCooldown = 3000;
+
+        uint32 syncInterval = 10000;
     };
 
     Config config;
@@ -266,8 +277,9 @@ namespace
         for (std::string_view token : Acore::Tokenize(list, ',', false))
         {
             std::string trimmed(token);
-            trimmed.erase(0, trimmed.find_first_not_of(" \t"));
-            trimmed.erase(trimmed.find_last_not_of(" \t") + 1);
+            // Quotes too: the core strips them from the config file, not from environment overrides.
+            trimmed.erase(0, trimmed.find_first_not_of(" \t\""));
+            trimmed.erase(trimmed.find_last_not_of(" \t\"") + 1);
 
             Optional<uint32> subclass = Acore::StringTo<uint32>(trimmed);
             if (!subclass || *subclass >= MAX_ITEM_SUBCLASS_WEAPON)
@@ -556,8 +568,11 @@ class spell_forever_class_power_percent : public AuraScript
 {
     PrepareAuraScript(spell_forever_class_power_percent);
 
-    void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& /*canBeRecalculated*/)
+    void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
     {
+        // Keep the amount it was cast with (a buff saved over a relog would recalculate).
+        canBeRecalculated = false;
+
         Unit* caster = GetCaster();
         if (!caster || caster != GetUnitOwner())
             return;
@@ -581,6 +596,33 @@ class spell_forever_class_power_percent : public AuraScript
     }
 };
 
+// 90152 Pack Fury, 90158 Fel Frenzy: the pet's half is its own spell (90160, 90161), cast only
+// when there's a pet. On the main spell an effect aimed at the pet would make the whole cast fail
+// without one (a hunter below level 10, a Lone Wolf, a warlock with Demonic Sacrifice).
+class spell_forever_class_pet_buff : public SpellScript
+{
+    PrepareSpellScript(spell_forever_class_pet_buff);
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_PACK_FURY_PET, SPELL_FEL_FRENZY_PET });
+    }
+
+    void HandleAfterCast()
+    {
+        Unit* caster = GetCaster();
+        if (!caster || !caster->GetGuardianPet())
+            return;
+
+        caster->CastSpell(caster, GetSpellInfo()->Id == SPELL_PACK_FURY ? SPELL_PACK_FURY_PET : SPELL_FEL_FRENZY_PET, true);
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_forever_class_pet_buff::HandleAfterCast);
+    }
+};
+
 // 90159 Wild Instinct. One buff with three effects; only the one for the druid's form when it's
 // cast counts: spell haste in caster form, Moonkin, Tree of Life and travel forms (effect 0),
 // energy regeneration in Cat Form (effect 1), attack power in Bear Form (effect 2, plus rage).
@@ -588,8 +630,11 @@ class spell_forever_wild_instinct_aura : public AuraScript
 {
     PrepareAuraScript(spell_forever_wild_instinct_aura);
 
-    void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& /*canBeRecalculated*/)
+    void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
     {
+        // The form when it was cast counts, not the form at a later relog.
+        canBeRecalculated = false;
+
         if (Unit* caster = GetCaster())
             if (aurEff->GetEffIndex() != WildInstinctEffectFor(caster->GetShapeshiftForm()))
                 amount = 0;
@@ -660,6 +705,8 @@ public:
         config.touchMaxHealthPercent = sConfigMgr->GetOption<float>("ForeverRacials.TouchOfTheGrave.MaxHealthPercent", 5.0f);
         config.touchCooldown         = sConfigMgr->GetOption<uint32>("ForeverRacials.TouchOfTheGrave.Cooldown", 3000);
 
+        config.syncInterval = sConfigMgr->GetOption<uint32>("ForeverRacials.SyncInterval", 10000);
+
         // At startup the spell data isn't loaded yet; OnBeforeWorldInitialized does it then.
         if (reload)
             ApplyProcCooldowns();
@@ -675,10 +722,27 @@ public:
 class ForeverRacialsPlayerScript : public PlayerScript
 {
 public:
-    ForeverRacialsPlayerScript() : PlayerScript("ForeverRacialsPlayerScript", { PLAYERHOOK_ON_LOGIN }) { }
+    ForeverRacialsPlayerScript() : PlayerScript("ForeverRacialsPlayerScript", { PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_UPDATE }) { }
 
     void OnPlayerLogin(Player* player) override
     {
+        UpdateSpells(player);
+    }
+
+    // Checked again every few seconds, because a character can lose its spells while online:
+    // playerbots' randomizer clears every spell of a random bot and teaches back only the
+    // default and trainer ones. Cheap when nothing changed (a few dozen lookups).
+    void OnPlayerUpdate(Player* player, uint32 diff) override
+    {
+        if (!config.syncInterval)
+            return;
+
+        SyncTimer* state = player->CustomData.GetDefault<SyncTimer>("mod-forever-racials");
+        state->timer += diff;
+        if (state->timer < config.syncInterval)
+            return;
+
+        state->timer = 0;
         UpdateSpells(player);
     }
 };
@@ -707,6 +771,7 @@ void AddForeverRacialsScripts()
     new ForeverRacialsGlobalScript();
     RegisterSpellScript(spell_forever_touch_of_the_grave);
     RegisterSpellScript(spell_forever_class_power_percent);
+    RegisterSpellScript(spell_forever_class_pet_buff);
     RegisterSpellScript(spell_forever_wild_instinct_aura);
     RegisterSpellScript(spell_forever_wild_instinct);
 }

@@ -34,8 +34,8 @@ ForeverRacials.Classes.Enable = 1
 #    ForeverRacials.Profession.SpeedPercent
 #        Description: How much faster the profession racials make their profession, in percent
 #                     of the cast time: Gnome Engineering, Draenei Jewelcrafting, Blood Elf
-#                     Enchanting and Tauren Herbalism. Stacks with mod-gathering-tools' tool bonus.
-#                     Startup only. The client patch's tooltips say 25%.
+#                     Enchanting and Tauren Herbalism. Startup only. The client patch's tooltips
+#                     say 25%.
 #        Default:     25
 #
 
@@ -135,3 +135,14 @@ ForeverRacials.TouchOfTheGrave.MaxHealthPercent = 5
 #
 
 ForeverRacials.TouchOfTheGrave.Cooldown = 3000
+
+#
+#    ForeverRacials.SyncInterval
+#        Description: Milliseconds between checks that each online character has the right
+#                     racials and class spells (they're also checked at login). Needed for
+#                     playerbots: its randomizer clears a random bot's spells while it's online
+#                     and teaches back only the default and trainer ones. 0 checks at login only.
+#        Default:     10000
+#
+
+ForeverRacials.SyncInterval = 10000

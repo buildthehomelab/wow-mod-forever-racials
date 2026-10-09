@@ -193,6 +193,27 @@ tools/build_patch.py --dbc Spell.dbc --out-dir DBFilesClient
 them). Packing needs StormLib (`brew install stormlib`); point `STORMLIB` at `libstorm` if it
 isn't in `/usr/local/lib`.
 
+## Character creation screen
+
+The character creation screen doesn't read Spell.dbc: its racial list comes from the
+`ABILITY_INFO_<RACE><n>` strings in the client's `Interface\GlueXML\GlueStrings.lua`. So patch-P
+doesn't change it. `tools/build_glue_patch.py` rewrites those strings to the 2 + 2 kits (leaving
+every other string alone) and packs them into their own patch:
+
+```bash
+tools/build_glue_patch.py --glue GlueStrings.lua --out patch-Q.MPQ   # from the client's own file
+tools/build_glue_patch.py --from-mpq patch-enUS-3.MPQ --out patch-Q.MPQ
+```
+
+The client replaces the whole file, so start from the GlueStrings.lua your players already have.
+On the Evermore client (TheraWoW + Reforged HD) that's the stock one in `Data/enUS/patch-enUS-3.MPQ`;
+our realm ships it as `patch-Q.MPQ` (wow-server `tools/client-patches/README.md` keeps the letters).
+No other realm patch ships GlueStrings.lua; one that did would have to be the starting file, and
+this patch's letter would have to sort after it (letters sort after digits).
+
+**The 3.3.5 client refuses changed interface files** unless it runs a Wow.exe that allows interface
+edits. The Evermore client's Wow.exe does; a stock one doesn't.
+
 ## How it works
 
 - **New spells** (90100-90111) are rows in `spell_dbc` for the server and in patch-P's Spell.dbc

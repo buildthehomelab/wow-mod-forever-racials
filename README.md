@@ -201,17 +201,18 @@ doesn't change it. `tools/build_glue_patch.py` rewrites those strings to the 2 +
 every other string alone) and packs them into their own patch:
 
 ```bash
-tools/build_glue_patch.py --from-mpq patch-7.MPQ --out patch-R.MPQ   # from a login patch you ship
-tools/build_glue_patch.py --glue GlueStrings.lua --out patch-R.MPQ   # from the client's own file
+tools/build_glue_patch.py --glue GlueStrings.lua --out patch-Q.MPQ   # from the client's own file
+tools/build_glue_patch.py --from-mpq patch-enUS-3.MPQ --out patch-Q.MPQ
 ```
 
-The client replaces the whole file, so start from the GlueStrings.lua your players already have
-(a login tweak's `patch-7.MPQ`, or the stock one from `locale-enUS.MPQ`), and give the patch a
-letter that sorts after that patch's (letters sort after digits).
+The client replaces the whole file, so start from the GlueStrings.lua your players already have.
+On the Evermore client (TheraWoW + Reforged HD) that's the stock one in `Data/enUS/patch-enUS-3.MPQ`;
+our realm ships it as `patch-Q.MPQ` (wow-server `tools/client-patches/README.md` keeps the letters).
+No other realm patch ships GlueStrings.lua; one that did would have to be the starting file, and
+this patch's letter would have to sort after it (letters sort after digits).
 
-**The 3.3.5 client may refuse changed interface files** unless it runs a Wow.exe that allows
-interface edits. Try the patch on one client first, and ship it as its own optional patch, not
-inside patch-P, so players on the stock Wow.exe aren't affected.
+**The 3.3.5 client refuses changed interface files** unless it runs a Wow.exe that allows interface
+edits. The Evermore client's Wow.exe does; a stock one doesn't.
 
 ## How it works
 

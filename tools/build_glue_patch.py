@@ -8,13 +8,12 @@ ABILITY_INFO_<RACE><n> strings in the client's Interface\\GlueXML\\GlueStrings.l
 can't change it. This script rewrites those strings to the module's 2 active + 2 passive kits
 and leaves every other string alone:
 
-    python3 build_glue_patch.py --glue GlueStrings.lua --out patch-R.MPQ
+    python3 build_glue_patch.py --glue GlueStrings.lua --out patch-Q.MPQ
 
-Start from the GlueStrings.lua your players already have: the stock one from the client's
-locale-enUS.MPQ, or the one in a login patch you ship (such as a login tweak's patch-7.MPQ;
---from-mpq reads it straight from there). The whole file is replaced in the client, so any other
-changes in it must be in the file you start from. The patch's letter has to sort after any
-other patch that ships GlueStrings.lua (letters sort after digits), so patch-R beats patch-7.
+Start from the GlueStrings.lua your players already have: on the Evermore client that's the
+stock one in Data/enUS/patch-enUS-3.MPQ (--from-mpq reads it straight from there). The whole file
+is replaced in the client, so any other changes in it must be in the file you start from, and the
+patch's letter has to sort after any other patch that ships GlueStrings.lua.
 
 Heads-up: the 3.3.5 client may refuse changed GlueXML files ("interface files corrupt") unless it
 runs a Wow.exe that allows interface edits. Test it on one client before handing it out, and ship

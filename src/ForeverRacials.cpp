@@ -7,7 +7,7 @@
  *
  * Like WoW Forever, each race shows 2 actives and 2 passives. The extra 3.3.5 racials
  * (resistances, Command, Gun, Bow and Throwing Specialization, Elusiveness, Da Voodoo Shuffle,
- * Cultivation's +15 Herbalism) keep working unchanged; patch-P hides them from the spellbook and
+ * Cultivation's +15 Herbalism) keep working unchanged; the client patch hides them from the spellbook and
  * lists them in the tooltip of the passive they're folded into.
  *
  *   Human     Every Man for Himself, Perception (back, 2 min) | Sword Specialization (2% crit
@@ -31,9 +31,9 @@
  *   Troll     Berserking, Rapid Regeneration (new: 50% of max health over 20 sec) |
  *             Regeneration, Beast Slaying.
  *
- * The new spells (90100-90111) come from spell_dbc on the server and patch-P on the client
+ * The new spells (90100-90111) come from spell_dbc on the server and the client patch on the client
  * (tools/build_patch.py). The stock racials are changed in memory when the server starts;
- * patch-P updates their tooltips. Each race can be turned off in the config.
+ * the client patch updates their tooltips. Each race can be turned off in the config.
  *
  * Released under the MIT License.
  */
@@ -94,7 +94,7 @@ namespace
     constexpr uint32 SPELL_CANNIBALIZE_HEAL = 20578;
     constexpr uint32 SPELL_ENDURANCE = 20550;
 
-    // The fixed values the client patch's tooltips show. Changing them means rebuilding patch-P
+    // The fixed values the client patch's tooltips show. Changing them means rebuilding the client patch
     // (tools/build_patch.py has the same numbers).
     constexpr int32 HUMAN_SPIRIT_PERCENT = 5;
     constexpr uint32 PERCEPTION_COOLDOWN_MS = 120000;
@@ -215,7 +215,7 @@ namespace
 
         // Diplomacy can't simply be unlearned: the core teaches racial passives again from the
         // Human skill line at every login. So it stays learned but gives 0% reputation (base
-        // points + 1 on a one-sided die), and patch-P hides it from the spellbook.
+        // points + 1 on a one-sided die), and the client patch hides it from the spellbook.
         if (SpellInfo* diplomacy = MutableSpell(SPELL_DIPLOMACY))
             diplomacy->Effects[EFFECT_0].BasePoints = -1;
     }

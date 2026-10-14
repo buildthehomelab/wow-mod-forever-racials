@@ -1,5 +1,5 @@
 -- mod-forever-racials: the new racial spells, their procs and scripts, and Cultivation's herbs.
--- The client gets the same spell rows from patch-P (tools/build_patch.py, which prints the
+-- The client gets the same spell rows from the client patch (tools/build_patch.py, which prints the
 -- spell_dbc rows below with --sql).
 --
 --   90100 Big Game Hunter           Dwarf passive, a copy of Beast Slaying (20557): +5% damage to Beasts.

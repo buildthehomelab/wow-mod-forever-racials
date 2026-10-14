@@ -176,8 +176,8 @@ folder.
 `tools/build_patch.py` changes the client's Spell.dbc: it adds the twelve new spells
 (90100-90111), updates the changed racials so their tooltips match, and hides Diplomacy and the
 folded racials from the spellbook. Only the newest client
-patch's Spell.dbc is used, so start from the patch that already ships one (patch-P on this realm)
-and the script keeps its other changes:
+patch's Spell.dbc is used, so start from the patch that already ships one (`patch-P.MPQ` below is
+an example name) and the script keeps its other changes:
 
 ```bash
 tools/build_patch.py --from-mpq patch-P.MPQ --out patch-P.MPQ.new
@@ -196,9 +196,11 @@ isn't in `/usr/local/lib`.
 ## Character creation screen
 
 The character creation screen doesn't read Spell.dbc: its racial list comes from the
-`ABILITY_INFO_<RACE><n>` strings in the client's `Interface\GlueXML\GlueStrings.lua`. So patch-P
-doesn't change it. `tools/build_glue_patch.py` rewrites those strings to the 2 + 2 kits (leaving
+`ABILITY_INFO_<RACE><n>` strings in the client's `Interface\GlueXML\GlueStrings.lua`. So the spell
+patch doesn't change it. `tools/build_glue_patch.py` rewrites those strings to the 2 + 2 kits (leaving
 every other string alone) and packs them into their own patch:
+
+`patch-Q.MPQ` is an example name; pick a letter your realm doesn't use yet.
 
 ```bash
 tools/build_glue_patch.py --glue GlueStrings.lua --out patch-Q.MPQ   # from the client's own file
@@ -206,18 +208,17 @@ tools/build_glue_patch.py --from-mpq patch-enUS-3.MPQ --out patch-Q.MPQ
 ```
 
 The client replaces the whole file, so start from the GlueStrings.lua your players already have.
-On the Evermore client (TheraWoW + Reforged HD) that's the stock one in `Data/enUS/patch-enUS-3.MPQ`;
-our realm ships it as `patch-Q.MPQ` (wow-server `tools/client-patches/README.md` keeps the letters).
-No other realm patch ships GlueStrings.lua; one that did would have to be the starting file, and
-this patch's letter would have to sort after it (letters sort after digits).
+On an enUS client that's the stock one in `Data/enUS/patch-enUS-3.MPQ`. If one of your realm's
+patches already ships GlueStrings.lua, start from that one instead, and give this patch a letter
+that sorts after it (letters sort after digits).
 
 **The 3.3.5 client refuses changed interface files** unless it runs a Wow.exe that allows interface
-edits. The Evermore client's Wow.exe does; a stock one doesn't.
+edits (a modified Wow.exe with the interface check removed). A stock one doesn't.
 
 ## How it works
 
-- **New spells** (90100-90111) are rows in `spell_dbc` for the server and in patch-P's Spell.dbc
-  for the client, built from stock spells for their flags, icons and visuals (Beast Slaying,
+- **New spells** (90100-90111) are rows in `spell_dbc` for the server and in the client patch's
+  Spell.dbc for the client, built from stock spells for their flags, icons and visuals (Beast Slaying,
   Perception, Stoneform, and an NPC's instant Shadow health leech for the drain).
 - **Stock racials** are changed in memory when the server starts, like the core's own spell
   corrections, so the database's copy of the game data is never touched.

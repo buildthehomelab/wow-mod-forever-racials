@@ -4,20 +4,20 @@ mod-forever-racials: update the racial list the character creation screen shows,
 into its own patch MPQ.
 
 The character creation screen doesn't read Spell.dbc. Its list of racials comes from the
-ABILITY_INFO_<RACE><n> strings in the client's Interface\\GlueXML\\GlueStrings.lua, so patch-P
-can't change it. This script rewrites those strings to the module's 2 active + 2 passive kits
+ABILITY_INFO_<RACE><n> strings in the client's Interface\\GlueXML\\GlueStrings.lua, so the spell
+patch can't change it. This script rewrites those strings to the module's 2 active + 2 passive kits
 and leaves every other string alone:
 
-    python3 build_glue_patch.py --glue GlueStrings.lua --out patch-Q.MPQ
+    python3 build_glue_patch.py --glue GlueStrings.lua --out patch-Q.MPQ   # patch-Q: an example name
 
-Start from the GlueStrings.lua your players already have: on the Evermore client that's the
+Start from the GlueStrings.lua your players already have: on an enUS client that's the
 stock one in Data/enUS/patch-enUS-3.MPQ (--from-mpq reads it straight from there). The whole file
 is replaced in the client, so any other changes in it must be in the file you start from, and the
 patch's letter has to sort after any other patch that ships GlueStrings.lua.
 
 Heads-up: the 3.3.5 client may refuse changed GlueXML files ("interface files corrupt") unless it
 runs a Wow.exe that allows interface edits. Test it on one client before handing it out, and ship
-it as its own optional patch rather than inside patch-P.
+it as its own optional patch rather than inside the spell patch.
 
 Packing needs StormLib (libstorm), like build_patch.py.
 

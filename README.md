@@ -82,7 +82,8 @@ then one more every 4 seconds, up to 5 stacks (10%) after 20 seconds. Standing s
 all. Taxi flights don't count. The speed multiplies with other speed bonuses (10% on a 100% Travel
 Form makes it 120%) and works in every druid form; Aquatic Form's swimming and the flight forms'
 flying need [mod-forever-druid](https://github.com/buildthehomelab/wow-mod-forever-druid), since
-the core only applies it to running. Mounts don't get it.
+the core only applies it to running. Mounts don't get it: getting on one removes the stacks, as a
+taxi does.
 
 **Cultivation.** Grows a herb 2 yards in front of you, picked at random from the best herbs for
 your level: Peacebloom and Silverleaf at level 1, up to Lichbloom and Icethorn at 77. Anyone can

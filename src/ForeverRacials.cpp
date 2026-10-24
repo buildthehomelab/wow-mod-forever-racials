@@ -555,7 +555,8 @@ class spell_forever_eureka : public AuraScript
 
 // 90108 - Plainsrunning. Checked every second: after Delay seconds of moving the Tauren gets the
 // first stack of the speed buff (90109, 2% each), then one more every SecondsPerStack seconds, up
-// to 5. Standing still (or a taxi) removes it.
+// to 5. Standing still, a mount or a taxi removes it. The core already leaves the speed out of
+// mount speed, but the buff would still sit there, stacking, as if it counted.
 class spell_forever_plainsrunning : public AuraScript
 {
     PrepareAuraScript(spell_forever_plainsrunning);
@@ -568,7 +569,8 @@ class spell_forever_plainsrunning : public AuraScript
     void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         Unit* tauren = GetTarget();
-        if (!config.tauren || !tauren->IsPlayer() || !tauren->isMoving() || tauren->IsInFlight() || !tauren->IsAlive())
+        if (!config.tauren || !tauren->IsPlayer() || !tauren->isMoving() || tauren->IsMounted() || tauren->IsInFlight() ||
+            !tauren->IsAlive())
         {
             _secondsMoving = 0;
             tauren->RemoveAurasDueToSpell(SPELL_PLAINSRUNNING_SPEED);

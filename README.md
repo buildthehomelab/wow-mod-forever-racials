@@ -85,6 +85,10 @@ flying need [mod-forever-druid](https://github.com/buildthehomelab/wow-mod-forev
 the core only applies it to running. Mounts don't get it: getting on one removes the stacks, as a
 taxi does.
 
+Past 10% the speed keeps growing without showing it: 2% more every 5 seconds, up to 30% in all
+(after 70 seconds of moving). The buff and its tooltip still say 10%. Entering combat or taking
+any damage takes the hidden part away (the 10% stays), and it starts again out of combat.
+
 **Cultivation.** Grows a herb 2 yards in front of you, picked at random from the best herbs for
 your level: Peacebloom and Silverleaf at level 1, up to Lichbloom and Icethorn at 77. Anyone can
 gather it, with or without Herbalism, and it has the herb's normal loot. It withers after 2
@@ -150,6 +154,8 @@ added to the world database on the next start.
 | `ForeverRacials.TouchOfTheGrave.Cooldown` | `3000` | Minimum milliseconds between drains. `0` for none. |
 | `ForeverRacials.Plainsrunning.Delay` | `4` | Seconds of moving before the first 2% speed. |
 | `ForeverRacials.Plainsrunning.SecondsPerStack` | `4` | Seconds of moving per further 2% speed. |
+| `ForeverRacials.Plainsrunning.HiddenSecondsPerStack` | `5` | Past 10%, seconds of moving per further hidden 2%. |
+| `ForeverRacials.Plainsrunning.MaxPercent` | `30` | Cap on the whole bonus, hidden part included. `10` turns the hidden part off. |
 | `ForeverRacials.Cultivation.DespawnSeconds` | `120` | How long a grown herb lasts. |
 | `ForeverRacials.Cultivation.RespectProgression` | `1` | Follow mod-individual-progression's Outland and Northrend unlocks. |
 

@@ -27,7 +27,8 @@
  *             weapon attacks 5% and harmful spells 10% chance to drain), Underwater Breathing.
  *   Tauren    War Stomp, Cultivation (new: grows a herb for your level that anyone can gather) |
  *             Endurance (adds 1% hit), Plainsrunning (new: after 4 sec of moving, 2% speed every
- *             4 sec, up to 10% at 20 sec).
+ *             4 sec, up to 10% at 20 sec; then a hidden 2% every 5 sec up to 30%, lost on combat
+ *             or damage).
  *   Troll     Berserking, Rapid Regeneration (new: 50% of max health over 20 sec) |
  *             Regeneration, Beast Slaying.
  *
@@ -135,6 +136,8 @@ namespace
 
         uint32 plainsrunningDelay = 4;
         uint32 plainsrunningSecondsPerStack = 4;
+        uint32 plainsrunningHiddenSecondsPerStack = 5;
+        int32 plainsrunningMaxPercent = 30;
 
         uint32 cultivationDespawnSeconds = 120;
         bool cultivationRespectProgression = true;
@@ -553,10 +556,53 @@ class spell_forever_eureka : public AuraScript
     }
 };
 
+namespace
+{
+    // Plainsrunning's hidden part: seconds of moving at full stacks, out of combat and unhurt. It's
+    // kept on the player rather than in the aura script so the damage hook can reset it.
+    struct PlainsrunningState : public DataMap::Base
+    {
+        uint32 hiddenSeconds = 0;
+    };
+
+    PlainsrunningState& GetPlainsrunningState(Unit* tauren)
+    {
+        return *tauren->CustomData.GetDefault<PlainsrunningState>("mod-forever-racials-plainsrunning");
+    }
+
+    // The hidden bonus for that many seconds: 2% every HiddenSecondsPerStack, until the whole speed
+    // reaches MaxPercent.
+    int32 PlainsrunningHiddenPercent(uint32 hiddenSeconds)
+    {
+        uint32 const perStack = std::max<uint32>(1, config.plainsrunningHiddenSecondsPerStack);
+        int32 const maxHidden = std::max(0, config.plainsrunningMaxPercent - PLAINSRUNNING_PERCENT_PER_STACK * PLAINSRUNNING_MAX_STACKS);
+        return std::min<int32>(maxHidden, int32(hiddenSeconds / perStack) * PLAINSRUNNING_PERCENT_PER_STACK);
+    }
+
+    // Set the speed buff's real amount: 2% per stack plus the hidden bonus. Auras in 3.3.5 don't send
+    // their amounts to the client, so the buff and its tooltip keep showing the stacks' 10%.
+    void SetPlainsrunningSpeed(Unit* tauren, Aura* speed, int32 hiddenPercent)
+    {
+        AuraEffect* effect = speed->GetEffect(EFFECT_0);
+        int32 const amount = PLAINSRUNNING_PERCENT_PER_STACK * speed->GetStackAmount() + hiddenPercent;
+        if (!effect || effect->GetAmount() == amount)
+            return;
+
+        effect->SetAmount(amount);
+        tauren->UpdateSpeed(MOVE_RUN, true);
+        if (Player* player = tauren->ToPlayer())
+            sScriptMgr->AnticheatSetUnderACKmount(player); // as the core's speed aura handlers do
+    }
+}
+
 // 90108 - Plainsrunning. Checked every second: after Delay seconds of moving the Tauren gets the
 // first stack of the speed buff (90109, 2% each), then one more every SecondsPerStack seconds, up
 // to 5. Standing still, a mount or a taxi removes it. The core already leaves the speed out of
 // mount speed, but the buff would still sit there, stacking, as if it counted.
+//
+// Past the 5 stacks the speed keeps growing, hidden: 2% more every HiddenSecondsPerStack seconds,
+// up to MaxPercent in all. Combat or taking damage takes the hidden part away (the stacks stay),
+// and it starts counting again once out of combat.
 class spell_forever_plainsrunning : public AuraScript
 {
     PrepareAuraScript(spell_forever_plainsrunning);
@@ -573,6 +619,7 @@ class spell_forever_plainsrunning : public AuraScript
             !tauren->IsAlive())
         {
             _secondsMoving = 0;
+            GetPlainsrunningState(tauren).hiddenSeconds = 0;
             tauren->RemoveAurasDueToSpell(SPELL_PLAINSRUNNING_SPEED);
             return;
         }
@@ -585,10 +632,21 @@ class spell_forever_plainsrunning : public AuraScript
         uint8 const stacks = uint8(std::min<uint32>(PLAINSRUNNING_MAX_STACKS, 1 + (_secondsMoving - config.plainsrunningDelay) / perStack));
 
         Aura* speed = tauren->GetAura(SPELL_PLAINSRUNNING_SPEED);
+        bool const wasFull = speed && speed->GetStackAmount() == PLAINSRUNNING_MAX_STACKS;
         if (!speed)
             speed = tauren->AddAura(SPELL_PLAINSRUNNING_SPEED, tauren);
-        if (speed && speed->GetStackAmount() != stacks)
+        if (!speed)
+            return;
+        if (speed->GetStackAmount() != stacks)
             speed->SetStackAmount(stacks);
+
+        // The hidden seconds count from the tick after the stacks fill up.
+        PlainsrunningState& state = GetPlainsrunningState(tauren);
+        if (stacks < PLAINSRUNNING_MAX_STACKS || tauren->IsInCombat())
+            state.hiddenSeconds = 0;
+        else if (wasFull)
+            ++state.hiddenSeconds;
+        SetPlainsrunningSpeed(tauren, speed, PlainsrunningHiddenPercent(state.hiddenSeconds));
     }
 
     void Register() override
@@ -660,6 +718,8 @@ public:
 
         config.plainsrunningDelay           = sConfigMgr->GetOption<uint32>("ForeverRacials.Plainsrunning.Delay", 4);
         config.plainsrunningSecondsPerStack = sConfigMgr->GetOption<uint32>("ForeverRacials.Plainsrunning.SecondsPerStack", 4);
+        config.plainsrunningHiddenSecondsPerStack = sConfigMgr->GetOption<uint32>("ForeverRacials.Plainsrunning.HiddenSecondsPerStack", 5);
+        config.plainsrunningMaxPercent      = sConfigMgr->GetOption<int32>("ForeverRacials.Plainsrunning.MaxPercent", 30);
 
         config.cultivationDespawnSeconds     = sConfigMgr->GetOption<uint32>("ForeverRacials.Cultivation.DespawnSeconds", 120);
         config.cultivationRespectProgression = sConfigMgr->GetOption<bool>("ForeverRacials.Cultivation.RespectProgression", true);
@@ -688,10 +748,31 @@ public:
     }
 };
 
+class ForeverRacialsUnitScript : public UnitScript
+{
+public:
+    ForeverRacialsUnitScript() : UnitScript("ForeverRacialsUnitScript", true, { UNITHOOK_ON_DAMAGE }) { }
+
+    // Taking damage ends Plainsrunning's hidden speed at once; the aura script counts it up again.
+    void OnDamage(Unit* /*attacker*/, Unit* victim, uint32& damage) override
+    {
+        if (!damage || !victim || !victim->IsPlayer() || victim->getRace() != RACE_TAUREN)
+            return;
+
+        Aura* speed = victim->GetAura(SPELL_PLAINSRUNNING_SPEED);
+        if (!speed)
+            return;
+
+        GetPlainsrunningState(victim).hiddenSeconds = 0;
+        SetPlainsrunningSpeed(victim, speed, 0);
+    }
+};
+
 void AddForeverRacialsScripts()
 {
     new ForeverRacialsWorldScript();
     new ForeverRacialsPlayerScript();
+    new ForeverRacialsUnitScript();
     RegisterSpellScript(spell_forever_blood_fury);
     RegisterSpellScript(spell_forever_touch_of_the_grave);
     RegisterSpellScript(spell_forever_eureka);

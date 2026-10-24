@@ -111,6 +111,25 @@ ForeverRacials.Plainsrunning.Delay = 4
 ForeverRacials.Plainsrunning.SecondsPerStack = 4
 
 #
+#    ForeverRacials.Plainsrunning.HiddenSecondsPerStack
+#        Description: Once the 5 stacks (10%) are full, seconds of moving for each further hidden
+#                     2% of speed. The buff and its tooltip keep showing 10%. Combat or taking
+#                     damage takes the hidden part away; it starts counting again out of combat.
+#        Default:     5
+#
+
+ForeverRacials.Plainsrunning.HiddenSecondsPerStack = 5
+
+#
+#    ForeverRacials.Plainsrunning.MaxPercent
+#        Description: Plainsrunning's whole speed bonus, visible 10% and hidden part together,
+#                     stops growing here. 10 turns the hidden part off.
+#        Default:     30
+#
+
+ForeverRacials.Plainsrunning.MaxPercent = 30
+
+#
 #    ForeverRacials.Cultivation.DespawnSeconds
 #        Description: Seconds before a herb grown with Cultivation withers if nobody gathers it.
 #                     The client patch's tooltip says 2 min.

@@ -94,6 +94,7 @@ namespace
     constexpr uint32 SPELL_HARDINESS = 20573;
     constexpr uint32 SPELL_CANNIBALIZE_HEAL = 20578;
     constexpr uint32 SPELL_ENDURANCE = 20550;
+    constexpr uint32 SPELL_WAR_STOMP = 20549;
 
     // The fixed values the client patch's tooltips show. Changing them means rebuilding the client patch
     // (tools/build_patch.py has the same numbers).
@@ -293,6 +294,11 @@ namespace
 
     void ApplyTaurenChanges()
     {
+        // War Stomp also works in Bear and Dire Bear Form. It already may be cast out of form
+        // (SPELL_ATTR2_ALLOW_WHILE_NOT_SHAPESHIFTED); the other druid and shaman forms still can't.
+        if (SpellInfo* warStomp = MutableSpell(SPELL_WAR_STOMP))
+            warStomp->Stances |= (1 << (FORM_BEAR - 1)) | (1 << (FORM_DIREBEAR - 1));
+
         if (SpellInfo* endurance = MutableSpell(SPELL_ENDURANCE))
         {
             SetAura(endurance, EFFECT_1, SPELL_AURA_MOD_HIT_CHANCE, ENDURANCE_HIT_PERCENT);

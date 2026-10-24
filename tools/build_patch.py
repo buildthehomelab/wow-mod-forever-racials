@@ -285,7 +285,9 @@ TEXTS = {
         f"After {PLAINSRUNNING_DELAY_SECONDS} sec of moving, your movement speed increases by "
         f"{PLAINSRUNNING_PERCENT_PER_STACK}% every {PLAINSRUNNING_SECONDS_PER_STACK} sec you keep "
         f"moving, up to {PLAINSRUNNING_PERCENT_PER_STACK * PLAINSRUNNING_MAX_STACKS}%. Stopping "
-        "resets it. Nature spells are $20551s1% less likely to hit you.",
+        "resets it. Stacks with other speed bonuses and works in every druid form, Aquatic Form "
+        "and the flight forms included, but not on a mount.\n\nNature spells are $20551s1% less "
+        "likely to hit you.",
         ""),
     SPELL_PLAINSRUNNING_SPEED: ("Plainsrunning", "",
         "Movement speed increased by $s1% for every stack."),

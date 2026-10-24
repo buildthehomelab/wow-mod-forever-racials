@@ -25,7 +25,8 @@ What it changes:
   cooldown, The Human Spirit gives 5% Spirit, Diplomacy is hidden (the server
   makes it give nothing), Stoneform also cuts physical damage, Quickness adds run speed, Escape
   Artist adds its immunity, Expansive Mind adds max mana, Blood Fury gives attack power and spell
-  power, Hardiness is 20%, Cannibalize restores mana too and Endurance adds hit. The client uses these for tooltips; the server decides what they do.
+  power, Hardiness is 20%, Cannibalize restores mana too, Endurance adds hit and War Stomp works in Bear Form. The client uses these for tooltips, and War Stomp's forms
+  to decide whether it lets you cast it; the server decides what they do.
 
 Running it again gives the same result, so it's safe to rebuild. Packing needs StormLib
 (libstorm). Point STORMLIB at it if it isn't /usr/local/lib/libstorm.dylib.
@@ -98,6 +99,7 @@ SPELL_HARDINESS = 20573
 SPELL_CANNIBALIZE = 20577
 SPELL_CANNIBALIZE_HEAL = 20578
 SPELL_ENDURANCE = 20550
+SPELL_WAR_STOMP = 20549
 SPELL_PERCEPTION = 20600
 SPELL_GUN_SPEC = 20595
 SPELL_WISP_SPIRIT = 20585
@@ -194,6 +196,10 @@ SPELL_ATTR2_CANT_CRIT = 0x20000000
 SPELL_ATTR3_SUPPRESS_CASTER_PROCS = 0x00010000
 SPELL_ATTR3_ALWAYS_HIT = 0x00040000
 SPELL_ATTR3_IGNORE_CASTER_MODIFIERS = 0x20000000
+
+# Stances bits: 1 << (form - 1).
+STANCE_BEAR = 1 << (5 - 1)
+STANCE_DIRE_BEAR = 1 << (8 - 1)
 
 SPELL_EFFECT_APPLY_AURA = 6
 SPELL_EFFECT_DUMMY = 3
@@ -613,6 +619,9 @@ def patch_existing(rows):
     row = find(rows, SPELL_ENDURANCE)
     set_aura(row, 1, AURA_MOD_HIT_CHANCE, ENDURANCE_HIT_PERCENT)
     set_aura(row, 2, AURA_MOD_SPELL_HIT_CHANCE, ENDURANCE_HIT_PERCENT, misc=SCHOOL_MASK_ALL)
+
+    # War Stomp in Bear and Dire Bear Form too (it may already be cast out of form).
+    find(rows, SPELL_WAR_STOMP)[F_STANCES] |= STANCE_BEAR | STANCE_DIRE_BEAR
 
 
 def set_texts(row, strings):

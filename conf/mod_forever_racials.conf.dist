@@ -21,7 +21,8 @@
 #        Description: One switch per race. With 0, that race keeps its stock 3.3.5 racials (so
 #                     Humans keep Diplomacy) and loses the new spells at its next login. Read at startup only: changing
 #                     them needs a restart, because the stock racials are changed when the
-#                     server starts. The client patch's tooltips stay either way.
+#                     server starts. The client patch's tooltips stay either way, and so does its
+#                     War Stomp in Bear Form (with Tauren off, the server refuses that cast).
 #        Default:     1
 #
 

@@ -25,7 +25,7 @@ Like WoW Forever, every race shows **2 actives and 2 passives**. Changes from 3.
 | **Gnome** | Escape Artist: then **immune to roots and snares for 3 sec** | **Eureka!**: next 3 spells or abilities within 20 sec cost 50% less and deal 30% more damage or healing, 2 min | Expansive Mind: also **5% max mana, rage, energy and runic power** | Engineering Specialization; Arcane Resistance |
 | **Orc** | Blood Fury: **attack power and spell power**, 15% of yours or the old flat amount | **Shatter Curse**: breaks curses, curse immunity and 10% less magic damage taken for 8 sec, 2 min | Axe Specialization: **2% crit with Axes and Fist Weapons** (was 5 expertise) | Hardiness: **20%** shorter stuns (was 15%); Command |
 | **Undead** | Will of the Forsaken | Cannibalize: restores **mana** too | **Touch of the Grave**: weapon attacks (5%) and harmful spells (10%) can drain the target; Shadow Resistance | Underwater Breathing |
-| **Tauren** | War Stomp | **Cultivation**: grows a herb anyone can gather, 10 min; +15 Herbalism | Endurance: also **1% hit** | **Plainsrunning**: after 4 sec of moving, 2% speed every 4 sec, up to 10%; Nature Resistance |
+| **Tauren** | War Stomp: also in **Bear Form** | **Cultivation**: grows a herb anyone can gather, 10 min; +15 Herbalism | Endurance: also **1% hit** | **Plainsrunning**: after 4 sec of moving, 2% speed every 4 sec, up to 10%; Nature Resistance |
 | **Troll** | Berserking | **Rapid Regeneration**: 50% of max health over 20 sec, 3 min | Regeneration; Da Voodoo Shuffle | Beast Slaying; Bow and Throwing Specialization |
 
 **Diplomacy is removed** from Humans, as in WoW Forever. Nothing else is taken away: the names

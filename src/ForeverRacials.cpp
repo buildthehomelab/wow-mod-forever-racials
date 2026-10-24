@@ -26,8 +26,8 @@
  *   Undead    Will of the Forsaken, Cannibalize (restores mana too) | Touch of the Grave (new:
  *             weapon attacks 5% and harmful spells 10% chance to drain), Underwater Breathing.
  *   Tauren    War Stomp, Cultivation (new: grows a herb for your level that anyone can gather) |
- *             Endurance (adds 1% hit), Plainsrunning (new: 1% speed a second while moving, up to
- *             5%).
+ *             Endurance (adds 1% hit), Plainsrunning (new: after 4 sec of moving, 2% speed every
+ *             4 sec, up to 10% at 20 sec).
  *   Troll     Berserking, Rapid Regeneration (new: 50% of max health over 20 sec) |
  *             Regeneration, Beast Slaying.
  *
@@ -105,6 +105,7 @@ namespace
     constexpr int32 CANNIBALIZE_MANA_PERCENT = 7;
     constexpr int32 ENDURANCE_HIT_PERCENT = 1;
     constexpr uint8 PLAINSRUNNING_MAX_STACKS = 5;
+    constexpr int32 PLAINSRUNNING_PERCENT_PER_STACK = 2;
 
     // mod-individual-progression keeps a player's progress as rewarded quests 66000 + state.
     constexpr uint32 IP_PROGRESSION_QUEST_BASE = 66000;
@@ -132,7 +133,8 @@ namespace
         float touchMaxHealthPercent = 5.0f;
         uint32 touchCooldown = 3000;
 
-        uint32 plainsrunningSecondsPerStack = 1;
+        uint32 plainsrunningDelay = 4;
+        uint32 plainsrunningSecondsPerStack = 4;
 
         uint32 cultivationDespawnSeconds = 120;
         bool cultivationRespectProgression = true;
@@ -322,7 +324,10 @@ namespace
 
         // Plainsrunning's speed is rebuilt from scratch as you move, so don't save it.
         if (SpellInfo* speed = MutableSpell(SPELL_PLAINSRUNNING_SPEED))
+        {
             speed->AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
+            speed->Effects[EFFECT_0].BasePoints = PLAINSRUNNING_PERCENT_PER_STACK - 1;
+        }
     }
 
     // Touch of the Grave's internal cooldown is its spell_proc row's; set it from the config.
@@ -548,9 +553,9 @@ class spell_forever_eureka : public AuraScript
     }
 };
 
-// 90108 - Plainsrunning. Every second, while the Tauren is moving, one more stack of the speed
-// buff (90109, 1% each) for every SecondsPerStack seconds of moving, up to 5. Standing still
-// (or a taxi) removes it.
+// 90108 - Plainsrunning. Checked every second: after Delay seconds of moving the Tauren gets the
+// first stack of the speed buff (90109, 2% each), then one more every SecondsPerStack seconds, up
+// to 5. Standing still (or a taxi) removes it.
 class spell_forever_plainsrunning : public AuraScript
 {
     PrepareAuraScript(spell_forever_plainsrunning);
@@ -571,10 +576,11 @@ class spell_forever_plainsrunning : public AuraScript
         }
 
         ++_secondsMoving;
-        uint32 const perStack = std::max<uint32>(1, config.plainsrunningSecondsPerStack);
-        uint8 const stacks = uint8(std::min<uint32>(PLAINSRUNNING_MAX_STACKS, _secondsMoving / perStack));
-        if (!stacks)
+        if (_secondsMoving < config.plainsrunningDelay)
             return;
+
+        uint32 const perStack = std::max<uint32>(1, config.plainsrunningSecondsPerStack);
+        uint8 const stacks = uint8(std::min<uint32>(PLAINSRUNNING_MAX_STACKS, 1 + (_secondsMoving - config.plainsrunningDelay) / perStack));
 
         Aura* speed = tauren->GetAura(SPELL_PLAINSRUNNING_SPEED);
         if (!speed)
@@ -650,7 +656,8 @@ public:
         config.touchMaxHealthPercent = sConfigMgr->GetOption<float>("ForeverRacials.TouchOfTheGrave.MaxHealthPercent", 5.0f);
         config.touchCooldown         = sConfigMgr->GetOption<uint32>("ForeverRacials.TouchOfTheGrave.Cooldown", 3000);
 
-        config.plainsrunningSecondsPerStack = sConfigMgr->GetOption<uint32>("ForeverRacials.Plainsrunning.SecondsPerStack", 1);
+        config.plainsrunningDelay           = sConfigMgr->GetOption<uint32>("ForeverRacials.Plainsrunning.Delay", 4);
+        config.plainsrunningSecondsPerStack = sConfigMgr->GetOption<uint32>("ForeverRacials.Plainsrunning.SecondsPerStack", 4);
 
         config.cultivationDespawnSeconds     = sConfigMgr->GetOption<uint32>("ForeverRacials.Cultivation.DespawnSeconds", 120);
         config.cultivationRespectProgression = sConfigMgr->GetOption<bool>("ForeverRacials.Cultivation.RespectProgression", true);

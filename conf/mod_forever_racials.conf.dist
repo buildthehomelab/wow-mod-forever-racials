@@ -95,12 +95,20 @@ ForeverRacials.TouchOfTheGrave.MaxHealthPercent = 5
 ForeverRacials.TouchOfTheGrave.Cooldown = 3000
 
 #
-#    ForeverRacials.Plainsrunning.SecondsPerStack
-#        Description: Seconds of moving for each 1% of Plainsrunning speed, up to 5%.
-#        Default:     1
+#    ForeverRacials.Plainsrunning.Delay
+#        Description: Seconds of moving before Plainsrunning gives its first 2% speed.
+#        Default:     4
 #
 
-ForeverRacials.Plainsrunning.SecondsPerStack = 1
+ForeverRacials.Plainsrunning.Delay = 4
+
+#
+#    ForeverRacials.Plainsrunning.SecondsPerStack
+#        Description: Seconds of moving for each further 2% of Plainsrunning speed, up to 10%.
+#        Default:     4
+#
+
+ForeverRacials.Plainsrunning.SecondsPerStack = 4
 
 #
 #    ForeverRacials.Cultivation.DespawnSeconds

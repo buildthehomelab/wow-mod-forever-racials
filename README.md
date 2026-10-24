@@ -25,7 +25,7 @@ Like WoW Forever, every race shows **2 actives and 2 passives**. Changes from 3.
 | **Gnome** | Escape Artist: then **immune to roots and snares for 3 sec** | **Eureka!**: next 3 spells or abilities within 20 sec cost 50% less and deal 30% more damage or healing, 2 min | Expansive Mind: also **5% max mana, rage, energy and runic power** | Engineering Specialization; Arcane Resistance |
 | **Orc** | Blood Fury: **attack power and spell power**, 15% of yours or the old flat amount | **Shatter Curse**: breaks curses, curse immunity and 10% less magic damage taken for 8 sec, 2 min | Axe Specialization: **2% crit with Axes and Fist Weapons** (was 5 expertise) | Hardiness: **20%** shorter stuns (was 15%); Command |
 | **Undead** | Will of the Forsaken | Cannibalize: restores **mana** too | **Touch of the Grave**: weapon attacks (5%) and harmful spells (10%) can drain the target; Shadow Resistance | Underwater Breathing |
-| **Tauren** | War Stomp | **Cultivation**: grows a herb anyone can gather, 10 min; +15 Herbalism | Endurance: also **1% hit** | **Plainsrunning**: 1% speed for each second you keep moving, up to 5%; Nature Resistance |
+| **Tauren** | War Stomp | **Cultivation**: grows a herb anyone can gather, 10 min; +15 Herbalism | Endurance: also **1% hit** | **Plainsrunning**: after 4 sec of moving, 2% speed every 4 sec, up to 10%; Nature Resistance |
 | **Troll** | Berserking | **Rapid Regeneration**: 50% of max health over 20 sec, 3 min | Regeneration; Da Voodoo Shuffle | Beast Slaying; Bow and Throwing Specialization |
 
 **Diplomacy is removed** from Humans, as in WoW Forever. Nothing else is taken away: the names
@@ -77,7 +77,8 @@ as your spells finish.
 fighting or taking damage doesn't stop it. WoW Forever's 50% is kept, but over 20 sec instead of
 an emergency full heal that would outclass every other defensive racial.
 
-**Plainsrunning.** Checked every second: moving adds a stack (1%), standing still removes them
+**Plainsrunning.** Checked every second: after 4 seconds of moving you get the first stack (2%),
+then one more every 4 seconds, up to 5 stacks (10%) after 20 seconds. Standing still removes them
 all. Taxi flights don't count.
 
 **Cultivation.** Grows a herb 2 yards in front of you, picked at random from the best herbs for
@@ -103,7 +104,8 @@ choices: the cooldowns of the new actives (2 min, or 3 min for Rapid Regeneratio
 Cultivation), Perception's 2 min, Escape Artist's 3 sec immunity, Eureka!'s 50% cost cut, 30%
 bonus and 20 sec window, Blood Fury's 15%, Shatter Curse's 10% magic reduction, Touch of the
 Grave's damage (25% of attack power or spell power, capped at 5% of max health) and its 3 sec
-cooldown, Rapid Regeneration's 20 sec, and Plainsrunning's 1% per second up to 5%.
+cooldown, Rapid Regeneration's 20 sec, and Plainsrunning's 4 sec wait, then 2% every 4 sec up
+to 10%.
 
 WoW Forever's other Gnome change, more reliable engineering devices, isn't included: the failure
 chances are hard-coded in the core's item scripts, one per device.
@@ -142,7 +144,8 @@ added to the world database on the next start.
 | `ForeverRacials.TouchOfTheGrave.PowerPercent` | `25` | Drain as a share of attack power or spell power. |
 | `ForeverRacials.TouchOfTheGrave.MaxHealthPercent` | `5` | Cap, as a share of your own max health. |
 | `ForeverRacials.TouchOfTheGrave.Cooldown` | `3000` | Minimum milliseconds between drains. `0` for none. |
-| `ForeverRacials.Plainsrunning.SecondsPerStack` | `1` | Seconds of moving per 1% speed. |
+| `ForeverRacials.Plainsrunning.Delay` | `4` | Seconds of moving before the first 2% speed. |
+| `ForeverRacials.Plainsrunning.SecondsPerStack` | `4` | Seconds of moving per further 2% speed. |
 | `ForeverRacials.Cultivation.DespawnSeconds` | `120` | How long a grown herb lasts. |
 | `ForeverRacials.Cultivation.RespectProgression` | `1` | Follow mod-individual-progression's Outland and Northrend unlocks. |
 
@@ -225,7 +228,9 @@ edits (a modified Wow.exe with the interface check removed). A stock one doesn't
 - **Scripts**: Blood Fury's amounts, Touch of the Grave's chance and drain, Eureka!'s charges,
   Plainsrunning's stacks and Cultivation's herb.
 - **Cultivation's herbs** are copies of 40 herb nodes (`gameobject_template` 9500700-9500739)
-  without the Herbalism lock, with the original herbs' loot.
+  with the original herbs' loot. Their lock is 43 (open kneeling, no skill) instead of the
+  Herbalism lock, so anyone can pick them. They can't have no lock at all: the core neither opens a
+  lockless chest on use nor lets an opening spell target one.
 
 ## Troubleshooting
 

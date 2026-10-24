@@ -57,6 +57,9 @@ TOUCH_SPELL_CHANCE = 10
 TOUCH_POWER_PERCENT = 25
 TOUCH_MAX_HEALTH_PERCENT = 5
 PLAINSRUNNING_MAX_STACKS = 5
+PLAINSRUNNING_PERCENT_PER_STACK = 2
+PLAINSRUNNING_DELAY_SECONDS = 4
+PLAINSRUNNING_SECONDS_PER_STACK = 4
 CULTIVATION_MINUTES = 2
 PERCEPTION_COOLDOWN_MS = 120000
 EUREKA_DAMAGE_PERCENT = 30
@@ -279,12 +282,13 @@ TEXTS = {
         ""),
     SPELL_TOUCH_OF_THE_GRAVE_DRAIN: ("Touch of the Grave", "", ""),
     SPELL_PLAINSRUNNING: ("Plainsrunning",
-        f"Each second you keep moving increases your movement speed by 1%, up to "
-        f"{PLAINSRUNNING_MAX_STACKS}%. Stopping resets it. Nature spells are $20551s1% less likely "
-        "to hit you.",
+        f"After {PLAINSRUNNING_DELAY_SECONDS} sec of moving, your movement speed increases by "
+        f"{PLAINSRUNNING_PERCENT_PER_STACK}% every {PLAINSRUNNING_SECONDS_PER_STACK} sec you keep "
+        f"moving, up to {PLAINSRUNNING_PERCENT_PER_STACK * PLAINSRUNNING_MAX_STACKS}%. Stopping "
+        "resets it. Nature spells are $20551s1% less likely to hit you.",
         ""),
     SPELL_PLAINSRUNNING_SPEED: ("Plainsrunning", "",
-        "Movement speed increased by $s1% for each second spent moving."),
+        "Movement speed increased by $s1% for every stack."),
     SPELL_CULTIVATION: ("Cultivation",
         f"Grows a herb out of the ground in front of you, matched to your level. Anyone can gather "
         f"it without Herbalism. It withers after {CULTIVATION_MINUTES} min.\n\nPassive: Herbalism "
@@ -527,13 +531,13 @@ def new_spells(rows):
     set_aura(s, 0, AURA_PERIODIC_DUMMY, 0, amplitude=1000)
     spells.append(s)
 
-    # Its buff: 1% speed per stack, up to 5 stacks, until you stop.
+    # Its buff: 2% speed per stack, up to 5 stacks, until you stop.
     s = copy(rows, TEMPLATE_RACIAL_ACTIVE, SPELL_PLAINSRUNNING_SPEED, icon=ICON_DASH, visual=0)
     s[F_RECOVERY_TIME] = 0
     s[F_START_RECOVERY_CATEGORY] = s[F_START_RECOVERY_TIME] = 0
     s[F_DURATION_INDEX] = DURATION_INFINITE
     s[F_STACK_AMOUNT] = PLAINSRUNNING_MAX_STACKS
-    set_aura(s, 0, AURA_MOD_SPEED_ALWAYS, 1)
+    set_aura(s, 0, AURA_MOD_SPEED_ALWAYS, PLAINSRUNNING_PERCENT_PER_STACK)
     spells.append(s)
 
     # Tauren active: the server's script picks a herb for your level and grows it. 10 min.
